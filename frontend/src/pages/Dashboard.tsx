@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { PieChart, Pie, ResponsiveContainer, Tooltip, LabelList } from 'recharts';
 
 const Dashboard = () => {
   return (
@@ -32,11 +33,26 @@ const Dashboard = () => {
               <CardContent>
                 <div className="text-3xl font-bold">$12,345.67</div>
                 <div className="text-green-600">+2.5% (24h)</div>
-                <div className="mt-4">
-                  <div className="w-full bg-neutral-200 rounded-full h-2">
-                    <div className="bg-primary-500 h-2 rounded-full" style={{ width: '70%' }}></div>
-                  </div>
-                  <div className="text-sm text-neutral-600 mt-2">70% oqAssets, 30% Stablecoins</div>
+                <div className="mt-4 h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'oqAssets', value: 70, fill: '#229FFF' },
+                          { name: 'Stablecoins', value: 30, fill: '#FFB014' },
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        <LabelList dataKey="name" position="outside" />
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>

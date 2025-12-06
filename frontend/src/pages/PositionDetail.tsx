@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const PositionDetail = () => {
   return (
@@ -32,8 +33,22 @@ const PositionDetail = () => {
               <CardTitle>LTV Over Time</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64 bg-neutral-100 rounded-medium flex items-center justify-center">
-                <p>Chart Placeholder</p>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={[
+                    { date: '2024-01-01', ltv: 0.65 },
+                    { date: '2024-01-02', ltv: 0.67 },
+                    { date: '2024-01-03', ltv: 0.69 },
+                    { date: '2024-01-04', ltv: 0.68 },
+                    { date: '2024-01-05', ltv: 0.70 },
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="ltv" stroke="#229FFF" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
