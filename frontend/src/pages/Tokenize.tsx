@@ -1,17 +1,31 @@
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 
 const steps = ['Upload Documents', 'Automatic Valuation', 'Mint oqAsset'];
 
+const tokenizeSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(120, 'Title too long'),
+  amount: z.number().min(1, 'Amount must be positive'),
+  dueDate: z.string().min(1, 'Due date is required'),
+});
+
 const Tokenize = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
-    title: '',
-    amount: '',
-    dueDate: '',
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm({
+    resolver: zodResolver(tokenizeSchema),
   });
+
+  const formData = watch();
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -56,37 +70,37 @@ const Tokenize = () => {
             {currentStep === 0 && (
               <div>
                 <h2 className="text-2xl font-semibold mb-6">Upload Documents</h2>
-                <div className="space-y-4">
+                <form className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Invoice Title</label>
                     <Input
                       placeholder="Acme Invoice #1234"
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      {...register('title')}
                     />
+                    {errors.title && <p className="text-error-500 text-sm mt-1">{errors.title.message}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Amount (USD)</label>
                     <Input
                       type="number"
                       placeholder="1000.00"
-                      value={formData.amount}
-                      onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                      {...register('amount', { valueAsNumber: true })}
                     />
+                    {errors.amount && <p className="text-error-500 text-sm mt-1">{errors.amount.message}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Due Date</label>
                     <Input
                       type="date"
-                      value={formData.dueDate}
-                      onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                      {...register('dueDate')}
                     />
+                    {errors.dueDate && <p className="text-error-500 text-sm mt-1">{errors.dueDate.message}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Upload Invoice PDF</label>
                     <Input type="file" />
                   </div>
-                </div>
+                </form>
               </div>
             )}
 
@@ -107,8 +121,8 @@ const Tokenize = () => {
                 <h2 className="text-2xl font-semibold mb-6">Mint oqAsset</h2>
                 <div className="bg-neutral-50 p-6 rounded-medium mb-6">
                   <h3 className="text-lg font-semibold mb-2">Confirm Mint</h3>
-                  <p>You are about to mint oqAsset for Invoice #{formData.title}.</p>
-                  <p>Amount: ${formData.amount}</p>
+                  <p>You are about to mint oqAsset for Invoice #{formData?.title}.</p>
+                  <p>Amount: ${formData?.amount}</p>
                   <p>Gas Estimate: 0.01 ETH</p>
                 </div>
                 <Button size="lg">Confirm Mint</Button>
