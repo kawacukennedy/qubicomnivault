@@ -32,7 +32,7 @@ const Dashboard = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="flex">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row">
         {/* Sidebar */}
         <aside className="w-64 bg-white shadow-subtle min-h-screen sticky top-0">
           <div className="p-6">
@@ -49,8 +49,7 @@ const Dashboard = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 p-8 order-2 lg:order-1">
             {/* Portfolio Card */}
             <Card className="mb-8">
               <CardHeader>
@@ -117,7 +116,7 @@ const Dashboard = () => {
         </main>
 
         {/* Activity Feed */}
-        <aside className="w-80 bg-white shadow-subtle min-h-screen p-6">
+        <aside className="w-full lg:w-80 bg-white shadow-subtle min-h-screen p-6 order-3 lg:order-2">
           <h3 className="text-lg font-semibold mb-4">Activity Feed</h3>
           <div className="space-y-4">
             <div className="p-4 bg-neutral-50 rounded-medium">
