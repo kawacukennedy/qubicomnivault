@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -112,7 +112,6 @@ const Dashboard = () => {
                 </table>
               </CardContent>
             </Card>
-          </div>
         </main>
 
         {/* Activity Feed */}

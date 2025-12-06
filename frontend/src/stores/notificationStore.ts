@@ -12,7 +12,7 @@ interface NotificationStore {
   removeToast: (id: string) => void;
 }
 
-export const useNotificationStore = create<NotificationStore>((set, get) => ({
+export const useNotificationStore = create<NotificationStore>((set) => ({
   toasts: [],
   addToast: (toast) => {
     const id = Date.now().toString();

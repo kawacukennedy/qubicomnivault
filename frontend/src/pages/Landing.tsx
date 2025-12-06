@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Button } from '../components/ui/Button';
 import WalletButton from '../components/WalletButton';
 
