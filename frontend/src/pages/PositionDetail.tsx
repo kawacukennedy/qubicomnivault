@@ -1,68 +1,61 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Banner } from '../components/ui/Banner';
+import { Chart } from '../components/ui/Chart';
 
 const PositionDetail = () => {
+  const ltvData = [
+    { name: 'Jan 1', ltv: 65 },
+    { name: 'Jan 2', ltv: 67 },
+    { name: 'Jan 3', ltv: 69 },
+    { name: 'Jan 4', ltv: 68 },
+    { name: 'Jan 5', ltv: 70 },
+  ];
+
+  const metrics = [
+    { label: 'Collateral Value', value: '$1,000' },
+    { label: 'Loan Amount', value: '$700' },
+    { label: 'LTV', value: '70%' },
+  ];
+
   return (
-    <div className="min-h-screen bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-neutral-50 py-12">
+      <div className="max-w-6xl mx-auto px-4">
         {/* Summary Banner */}
-        <div className="bg-white rounded-large p-8 shadow-medium mb-8">
-          <h1 className="text-3xl font-bold mb-4">oqAsset: Invoice #1234</h1>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-neutral-600">Collateral Value</p>
-              <p className="text-2xl font-semibold">$1,000</p>
-            </div>
-            <div>
-              <p className="text-sm text-neutral-600">Loan Amount</p>
-              <p className="text-2xl font-semibold">$700</p>
-            </div>
-            <div>
-              <p className="text-sm text-neutral-600">LTV</p>
-              <p className="text-2xl font-semibold">70%</p>
-            </div>
-          </div>
-        </div>
+        <Banner
+          title="oqAsset: Invoice #1234"
+          statusBadge={{ label: 'Healthy', variant: 'success' }}
+          metrics={metrics}
+          className="mb-8"
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* LTV Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>LTV Over Time</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={[
-                    { date: '2024-01-01', ltv: 0.65 },
-                    { date: '2024-01-02', ltv: 0.67 },
-                    { date: '2024-01-03', ltv: 0.69 },
-                    { date: '2024-01-04', ltv: 0.68 },
-                    { date: '2024-01-05', ltv: 0.70 },
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="ltv" stroke="#229FFF" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <div>
+            <Chart
+              type="line"
+              data={ltvData}
+              dataKey="ltv"
+              height={260}
+              className="bg-white p-6 rounded-medium shadow-subtle"
+            />
+          </div>
 
           {/* Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button className="w-full">Add Collateral</Button>
-              <Button variant="outline" className="w-full">Repay</Button>
-              <Button variant="outline" className="w-full">Close Position</Button>
-            </CardContent>
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Actions</h3>
+            <div className="space-y-4">
+              <Button className="w-full" variant="solid">
+                Add Collateral
+              </Button>
+              <Button className="w-full" variant="outline">
+                Repay
+              </Button>
+              <Button className="w-full" variant="outline">
+                Close Position
+              </Button>
+            </div>
           </Card>
         </div>
       </div>

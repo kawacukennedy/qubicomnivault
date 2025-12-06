@@ -4,3 +4,114 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Design Tokens as CSS Variables */
+:root {
+  /* Colors */
+  --color-primary-50: #EAF6FF;
+  --color-primary-100: #D1ECFF;
+  --color-primary-200: #A6DFFF;
+  --color-primary-300: #7BD1FF;
+  --color-primary-400: #4EBFFF;
+  --color-primary-500: #229FFF;
+  --color-primary-600: #1C7ECC;
+  --color-primary-700: #145F99;
+  --color-primary-800: #0E4366;
+  --color-primary-900: #072834;
+
+  --color-secondary-50: #FFF7EA;
+  --color-secondary-100: #FFEDCC;
+  --color-secondary-200: #FFE0A3;
+  --color-secondary-300: #FFD480;
+  --color-secondary-400: #FFC24A;
+  --color-secondary-500: #FFB014;
+  --color-secondary-600: #CC8E10;
+  --color-secondary-700: #996B0B;
+  --color-secondary-800: #664707;
+  --color-secondary-900: #332304;
+
+  --color-accent-50: #F6EFFF;
+  --color-accent-100: #E9D9FF;
+  --color-accent-200: #D6BBFF;
+  --color-accent-300: #C59DFF;
+  --color-accent-400: #B37FFF;
+  --color-accent-500: #A05EFF;
+  --color-accent-600: #7F47CC;
+  --color-accent-700: #5F3299;
+  --color-accent-800: #3E2066;
+  --color-accent-900: #1F1033;
+
+  --color-success-50: #F0FFF4;
+  --color-success-100: #DAF9E0;
+  --color-success-200: #B7F2C0;
+  --color-success-300: #8DE69A;
+  --color-success-400: #57D66A;
+  --color-success-500: #2AB94B;
+  --color-success-600: #218A3B;
+  --color-success-700: #17642D;
+  --color-success-800: #0E3F1E;
+  --color-success-900: #071E10;
+
+  --color-warning-50: #FFF9F0;
+  --color-warning-100: #FFF0D9;
+  --color-warning-200: #FFE2B3;
+  --color-warning-300: #FFD188;
+  --color-warning-400: #FFBF4D;
+  --color-warning-500: #FFA800;
+  --color-warning-600: #CC8800;
+  --color-warning-700: #995F00;
+  --color-warning-800: #663D00;
+  --color-warning-900: #331E00;
+
+  --color-error-50: #FFF2F2;
+  --color-error-100: #FFE0E0;
+  --color-error-200: #FFBFBF;
+  --color-error-300: #FF9E9E;
+  --color-error-400: #FF6E6E;
+  --color-error-500: #FF3B3B;
+  --color-error-600: #CC2F2F;
+  --color-error-700: #991E1E;
+  --color-error-800: #661414;
+  --color-error-900: #330A0A;
+
+  --color-neutral-50: #F8FAFB;
+  --color-neutral-100: #F1F5F7;
+  --color-neutral-200: #E6EAEE;
+  --color-neutral-300: #D7DEE6;
+  --color-neutral-400: #BFC9D4;
+  --color-neutral-500: #9FA9B8;
+  --color-neutral-600: #778394;
+  --color-neutral-700: #54606A;
+  --color-neutral-800: #30363B;
+  --color-neutral-900: #0F1112;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 32px;
+  --spacing-xxx: 48px;
+  --spacing-xxxx: 64px;
+  --spacing-huge: 96px;
+  --spacing-giant: 128px;
+
+  /* Border Radius */
+  --border-radius-small: 6px;
+  --border-radius-medium: 12px;
+  --border-radius-large: 20px;
+  --border-radius-pill: 9999px;
+  --border-radius-circle: 50%;
+
+  /* Shadows */
+  --shadow-subtle: 0px 1px 3px rgba(16,24,40,0.06), 0px 1px 2px rgba(16,24,40,0.03);
+  --shadow-medium: 0px 6px 18px rgba(16,24,40,0.08);
+  --shadow-large: 0px 20px 40px rgba(16,24,40,0.12);
+
+  /* Animations */
+  --animation-micro: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --animation-spring-soft: spring(400, 30, 0);
+  --animation-ease-in-out-expo: cubic-bezier(0.85, 0, 0.15, 1);
+  --animation-sharp: cubic-bezier(0.2, 0, 0, 1);
+}

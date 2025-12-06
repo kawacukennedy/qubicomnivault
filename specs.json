@@ -1,0 +1,944 @@
+{
+"meta": {
+"project_name": "[QUBIC_OMNIVAULT]",
+"specification_version": "1.0",
+"timestamp": "2025-12-06T08:00:00+02:00",
+"description": "This JSON document is a single, exhaustive technical blueprint for building Qubic OmniVault — a Real-World-Asset (RWA) tokenization, collateralized lending and yield routing platform built for the Qubic blockchain and EasyConnect automations, intended to be deployable end-to-end by a full-stack engineering team. It contains system architecture, chosen technologies, exhaustive UI/UX design tokens and component specifications, backend API and data model specifications, business logic pseudo-code, non-functional requirements, and a detailed list of deliverables so a competent team can implement the product without additional clarification."
+},
+"system_architecture": {
+"diagram_description": "Cloud-native 3-tier architecture with: (1) Client Tier (React SPA + static assets served via CDN), (2) API Gateway + Backend Services tier (gateway, auth service, microservices for lending, collateralization, oracle ingestion, accounting, and notification), and (3) Data tier (Primary SQL DB, ledger immutable store for proofs, Redis cache, message queue, object store). Additional sidecar: WebSocket server for real-time events, EasyConnect integration adapters, and Nostromo launchpad integration. Containerized services orchestrated via Kubernetes.",
+"component_map": {
+"Static Web Host (CDN)": {
+"purpose": "Host SPA assets (HTML/CSS/JS), deliver via global CDN (CloudFront/Cloudflare) for low-latency distribution."
+},
+"Client (React SPA)": {
+"purpose": "User-facing single-page app responsible for all UI flows, wallet integration, local signing, and interactions with backend via secure APIs and WebSocket."
+},
+"API Gateway": {
+"purpose": "Single ingress point handling routing, rate-limiting, authentication token validation, request aggregation, and TLS termination."
+},
+"Auth Service": {
+"purpose": "Handles user onboarding, KYC integration (optional), session management, and role-based access control; issues JWTs and manages refresh tokens."
+},
+"User Service": {
+"purpose": "CRUD operations for user profiles, preferences, credit meta-data and Q-Score calculations."
+},
+"Lending Service": {
+"purpose": "Smart contract orchestration layer for borrowing/lending operations, collateral valuation logic, minting oqAsset tokens (off-chain orchestration of on-chain txs)."
+},
+"Collateralization Service": {
+"purpose": "Manages tokenized RWA lifecycle, mint/burn oqAsset, custody metadata, off-chain proofs, and reconciliation."
+},
+"Yield Router Service": {
+"purpose": "Routes deposited funds to yield strategies, rebalancing, and distribution of interest earned to lenders and liquidity providers."
+},
+"Oracle Ingestion Service": {
+"purpose": "Collects pricing & RWA valuation feeds from external oracles, on-chain data, and EasyConnect triggers; normalizes and stores time-series price data."
+},
+"Accounting Service (Ledger)": {
+"purpose": "Immutable transaction ledger tracking deposits, borrows, interest accruals, liquidations, and Q-Score changes. Can map to an append-only store or blockchain anchoring."
+},
+"Notification Service": {
+"purpose": "Orchestrates WebSocket & push notifications, emails, SMS, and EasyConnect webhooks for automation triggers."
+},
+"WebSocket Server (Realtime)": {
+"purpose": "Push real-time events (price updates, liquidations, loan status) to connected clients and dashboards."
+},
+"Cache Layer (Redis)": {
+"purpose": "Fast access for session storage, rate-limits, ephemeral data, and leaderboards."
+},
+"Primary Database (PostgreSQL)": {
+"purpose": "Relational store for core domain models, relations, and ACID operations (user, loans, strategies, audit logs)."
+},
+"Immutable Proof Store (S3/Blob + Merkle Anchors)": {
+"purpose": "Object storage for RWA backing documents, scanned invoices, signed attestations; periodic anchoring to Qubic mainnet for tamper-evidence."
+},
+"Message Queue (Kafka/RabbitMQ/Cloud PubSub)": {
+"purpose": "Event-driven communication for asynchronous processing: oracle updates, interest accrual jobs, liquidation workflows, and external integrations."
+},
+"Monitoring & Logging": {
+"purpose": "Prometheus for metrics, Grafana dashboards, ELK or Loki for logs, alerting via PagerDuty."
+},
+"CI/CD Pipeline (GitHub Actions)": {
+"purpose": "Automated testing, container image builds, security scans, and deployments to staging/production."
+},
+"Kubernetes Cluster (GKE/EKS/AKS)": {
+"purpose": "Container orchestration with autoscaling, service mesh optional (Istio/Linkerd) for observability and resilient service-to-service communication."
+},
+"Nostromo Launchpad Adapter": {
+"purpose": "Integration for project listing, fee-waivers, and launch orchestration when promoting a protocol within Qubic's ecosystem."
+},
+"EasyConnect Adapter": {
+"purpose": "Expose events and endpoints to EasyConnect workflows; provide templates for no-code automations (Discord alerts, airdrops, Telegram bots)."
+}
+},
+"data_flow": [
+"1. User opens SPA; CDN serves optimized assets; SPA initializes and checks cached JWT.",
+"2. SPA requests API Gateway for configuration and feature flags.",
+"3. User connects wallet (web3 modal). Client obtains wallet address and queries Auth Service for user registration status.",
+"4. If user signs up, SPA sends registration request to Auth Service which creates a user record in PostgreSQL and returns a short-lived JWT and refresh token; optional KYC flow triggers via third-party provider.",
+"5. User navigates to 'Tokenize Invoice' page and uploads invoice documents which are sent to the Immutable Proof Store; object URLs and hashed metadata are stored in PostgreSQL and anchored (optional) to Qubic testnet via Collateralization Service.",
+"6. Collateralization Service mints a corresponding oqAsset token by orchestrating a transaction through the Qubic SDK or smart contract; tx hash is recorded in the Accounting Service and indexed.",
+"7. User deposits oqAsset into Lending Service pool via on-chain transaction; Lending Service updates ledger, recalculates pool utilization, and triggers Yield Router to allocate funds to selected strategies.",
+"8. Oracle Ingestion Service fetches pricing and RWA valuations and pushes time-series data into the Message Queue.",
+"9. Message Queue triggers interest accrual jobs in Accounting Service which calculate owed interest and update lender balances in PostgreSQL and Redis cache for rapid read.",
+"10. If collateral value drops below maintenance threshold, the Risk Engine posts a liquidation event to the Message Queue. Notification Service sends alerts via WebSocket and EasyConnect templates to Discord/Telegram/email and may call automatic on-chain partial-liquidation via Lending Service.",
+"11. Users interact with Dashboard which queries API Gateway; gateway aggregates data from cache, PostgreSQL, and ledger to render real-time positions.",
+"12. Administrative or governance actions (e.g., strategy updates) are submitted through authenticated endpoints, validated by RBAC, and then published to Message Queue for worker validation and Safe execution via Nostromo adapter where required.",
+"13. All transactions are logged to ELK/Loki and metrics emitted to Prometheus for monitoring dashboards; critical alerts fire to PagerDuty."
+],
+"deployment_environment": "Cloud-native, containerized via Docker, orchestrated with Kubernetes (recommended: GKE/EKS/AKS). Infrastructure as Code with Terraform. Use managed PostgreSQL and Redis (Cloud SQL/ElastiCache), object storage (S3/GCS), and managed Kafka or Pub/Sub where possible. CI/CD via GitHub Actions to deploy to staging and production clusters, with automated canary rollouts and health checks. Optional self-hosted on-prem for privacy-focused deployments."
+},
+"tech_stack": {
+"frontend": {
+"framework": "React 18+ (function components, concurrent features where stable)",
+"language": "TypeScript 5.x",
+"state_management": "Zustand for local/global state + React Query (TanStack Query) for server state and caching",
+"routing": "React Router v6 (file-based routes convention)",
+"build_tool": "Vite 5+ with ESBuild optimizations",
+"ui_libraries": [
+"Tailwind CSS (v4 compatible) as the main utility-first styling layer",
+"shadcn/ui (component primitives) for composable components",
+"Framer Motion for micro-interactions & page transitions",
+"Recharts or @visx for dashboard charts (time-series and candlesticks)",
+"Three.js if 3D visualizations required (strategy maps)",
+"Headless UI for accessible primitives (menus, dialogs)",
+"React Hook Form + Zod for form validation"
+],
+"wallet_integration": "Web3Modal + wagmi + @qubic/web3-sdk (or equivalent Qubic SDK), with connectors for MetaMask and WalletConnect",
+"testing": "Vitest (unit), Playwright (e2e)"
+},
+"backend": {
+"primary_language_framework": "Node.js 20.x + NestJS (modular microservices style) or alternatively Fastify/Express with TypeScript",
+"api_protocol": "REST for primary client interactions + GraphQL Gateway optional for aggregated read models; internal services can use gRPC (Protobuf) for high-throughput inter-service comms",
+"auth_library": "JWT (RS256) with tokens signed by Auth Service; integration option with Clerk or Supabase Auth for hosted auth. OAuth2 for 3rd-party integrations.",
+"websocket": "Socket.IO or native WebSocket with Redis adapter for horizontal scaling"
+},
+"database": {
+"primary": {
+"name": "PostgreSQL 15+",
+"justification": "Relational data with strong ACID guarantees for financial records, complex joins for reporting, and support for JSONB for flexible metadata."
+},
+"ledger": {
+"name": "PostgreSQL append-only ledger table + optional on-chain anchoring to Qubic",
+"justification": "Financial auditability and ability to export and reconcile with on-chain events."
+},
+"cache": {
+"name": "Redis (managed)",
+"justification": "Fast session storage, rate-limiting, leaderboards, and ephemeral state for real-time UI."
+},
+"object_store": {
+"name": "S3-compatible (AWS S3 / GCS)",
+"justification": "Store scanned invoices, attestations, and other large binary artifacts."
+}
+},
+"devops": {
+"version_control": "Git (GitHub)",
+"ci_cd": "GitHub Actions with separate pipelines for unit tests, integration tests, security scanning (Snyk/Dependabot), container image builds, and kubernetes deployments",
+"containerization": "Docker multi-stage builds, images stored in ECR/GCR",
+"orchestration": "Kubernetes (Deployment, StatefulSet for DB replicas, CronJob for scheduled tasks)",
+"service_mesh": "Optional Istio or Linkerd for mTLS, telemetry",
+"monitoring": "Prometheus for metrics, Grafana for dashboards",
+"tracing": "OpenTelemetry (distributed tracing), Jaeger",
+"logging": "Loki/Elastic Stack (ELK) for log aggregation",
+"secrets_management": "HashiCorp Vault or cloud KMS",
+"policy_and_iam": "Least-privilege IAM roles, OIDC for GitHub Actions"
+},
+"third_party_services": {
+"auth": "Clerk or Supabase Auth (optional) for passwordless & multi-factor flows; otherwise custom Auth Service",
+"payments": "Stripe (for fiat onboarding, fees & settlements), optional Ramp/Transak for on-ramp",
+"email": "Resend (or SendGrid/Postmark) for transactional emails",
+"sms": "Twilio for critical alerts (2FA)",
+"oracles": "Chainlink or other price feeds; custom oracle adapters for RWA valuation providers",
+"analytics": "Plausible or PostHog self-hosted for product analytics; Segment optional",
+"kyc_provider": "Onfido or SumSub (optional, pluggable)",
+"easyconnect": "EasyConnect API for no-code automations and webhook templates",
+"nostromo": "Nostromo Launchpad APIs for listing and launch orchestration"
+}
+},
+"ui_ux_specs": {
+"design_philosophy": "Trustworthy FinTech clarity with modern, calm, and slightly futuristic aesthetics — 'Glassboard Utility': high information density, clear hierarchy, motion to show causality, and human-readable financial language. Prioritize legibility, micro-interactions to convey system state, and polished onboarding to explain RWA concepts to non-crypto-savvy users.",
+"design_tokens": {
+"color_palette": {
+"usage_rules": "Primary used for CTAs and interactive elements; Secondary for highlights and secondary actions; Accent for illustrations and subtle emphasis; Neutral scales used for surfaces, text and dividers; Semantic colors for statuses. All color tokens include 50-900 steps where 50 is the lightest and 900 is the darkest. Use accessibility tooling to ensure contrast >= 4.5:1 for body text and >= 3:1 for large text.",
+"primary": {
+"50": "#EAF6FF",
+"100": "#D1ECFF",
+"200": "#A6DFFF",
+"300": "#7BD1FF",
+"400": "#4EBFFF",
+"500": "#229FFF",
+"600": "#1C7ECC",
+"700": "#145F99",
+"800": "#0E4366",
+"900": "#072834"
+},
+"secondary": {
+"50": "#FFF7EA",
+"100": "#FFEDCC",
+"200": "#FFE0A3",
+"300": "#FFD480",
+"400": "#FFC24A",
+"500": "#FFB014",
+"600": "#CC8E10",
+"700": "#996B0B",
+"800": "#664707",
+"900": "#332304"
+},
+"accent": {
+"50": "#F6EFFF",
+"100": "#E9D9FF",
+"200": "#D6BBFF",
+"300": "#C59DFF",
+"400": "#B37FFF",
+"500": "#A05EFF",
+"600": "#7F47CC",
+"700": "#5F3299",
+"800": "#3E2066",
+"900": "#1F1033"
+},
+"success": {
+"50": "#F0FFF4",
+"100": "#DAF9E0",
+"200": "#B7F2C0",
+"300": "#8DE69A",
+"400": "#57D66A",
+"500": "#2AB94B",
+"600": "#218A3B",
+"700": "#17642D",
+"800": "#0E3F1E",
+"900": "#071E10"
+},
+"warning": {
+"50": "#FFF9F0",
+"100": "#FFF0D9",
+"200": "#FFE2B3",
+"300": "#FFD188",
+"400": "#FFBF4D",
+"500": "#FFA800",
+"600": "#CC8800",
+"700": "#995F00",
+"800": "#663D00",
+"900": "#331E00"
+},
+"error": {
+"50": "#FFF2F2",
+"100": "#FFE0E0",
+"200": "#FFBFBF",
+"300": "#FF9E9E",
+"400": "#FF6E6E",
+"500": "#FF3B3B",
+"600": "#CC2F2F",
+"700": "#991E1E",
+"800": "#661414",
+"900": "#330A0A"
+},
+"neutral": {
+"50": "#F8FAFB",
+"100": "#F1F5F7",
+"200": "#E6EAEE",
+"300": "#D7DEE6",
+"400": "#BFC9D4",
+"500": "#9FA9B8",
+"600": "#778394",
+"700": "#54606A",
+"800": "#30363B",
+"900": "#0F1112"
+}
+},
+"typography": {
+"font_families": {
+"display": "Inter var, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
+"mono": "'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono'"
+},
+"import_links": {
+"inter": "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap",
+"fira_code": "https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap"
+},
+"scale": {
+"h1": { "size_px": 48, "size_rem": 3, "weight": 700, "line_height": 1.1, "letter_spacing": "-0.02em" },
+"h2": { "size_px": 36, "size_rem": 2.25, "weight": 700, "line_height": 1.15, "letter_spacing": "-0.01em" },
+"h3": { "size_px": 28, "size_rem": 1.75, "weight": 600, "line_height": 1.2, "letter_spacing": "0" },
+"h4": { "size_px": 20, "size_rem": 1.25, "weight": 600, "line_height": 1.3, "letter_spacing": "0" },
+"h5": { "size_px": 16, "size_rem": 1, "weight": 600, "line_height": 1.4, "letter_spacing": "0" },
+"h6": { "size_px": 14, "size_rem": 0.875, "weight": 600, "line_height": 1.4, "letter_spacing": "0.01em" },
+"body_large": { "size_px": 18, "size_rem": 1.125, "weight": 400, "line_height": 1.6 },
+"body": { "size_px": 16, "size_rem": 1, "weight": 400, "line_height": 1.6 },
+"caption": { "size_px": 12, "size_rem": 0.75, "weight": 400, "line_height": 1.4 },
+"mono": { "size_px": 13, "size_rem": 0.8125, "weight": 400, "line_height": 1.6 }
+}
+},
+"spacing": {
+"base_unit_px": 8,
+"scale": { "xs": 4, "sm": 8, "md": 12, "lg": 16, "xl": 24, "xxl": 32, "xxx": 48, "xxxx": 64, "huge": 96, "giant": 128 }
+},
+"border_radius": { "small": 6, "medium": 12, "large": 20, "pill": 9999, "circle": "50%" },
+"shadows": {
+"subtle": "0px 1px 3px rgba(16,24,40,0.06), 0px 1px 2px rgba(16,24,40,0.03)",
+"medium": "0px 6px 18px rgba(16,24,40,0.08)",
+"large": "0px 20px 40px rgba(16,24,40,0.12)"
+},
+"animation_curves": {
+"micro": "cubic-bezier(0.25, 0.8, 0.25, 1)",
+"spring_soft": "spring(400, 30, 0)",
+"ease_in_out_expo": "cubic-bezier(0.85, 0, 0.15, 1)",
+"sharp": "cubic-bezier(0.2, 0, 0, 1)"
+},
+"textures": {
+"background_noise": "subtle grain/noise SVG overlay at 2% opacity",
+"card_frost": "very soft glass blur (backdrop-filter: blur(6px)) on elevated cards at >600px width, disabled on low-power devices"
+}
+},
+"component_library": {
+"Button": {
+"variants": [
+{
+"name": "solid",
+"default_styles": { "height": 40, "padding": "0 16px", "border_radius": "medium", "font_weight": 600, "font_size": 16 },
+"color_rules": "primary.500 background, white text; hover primary.600; active primary.700; disabled neutral.300 with neutral.600 text"
+},
+{
+"name": "outline",
+"default_styles": { "height": 40, "padding": "0 16px", "border": "1px solid neutral.200", "background": "transparent" },
+"color_rules": "text uses neutral.800; hover border primary.300"
+}, {
+"name": "ghost", "default_styles": { "height": 36, "padding": "0 12px", "background": "transparent" }, "color_rules": "neutral text; subtle hover background neutral.50" }
+],
+"states": { "default": {}, "hover": { "transform": "translateY(-1px)" }, "active": { "transform": "translateY(0)" }, "disabled": { "opacity": 0.5, "pointerEvents": "none" } }
+},
+"Input": {
+"variants": [ "text", "number", "select", "multiline" ],
+"dimensions": { "height": 44, "padding": "0 12px" },
+"states": { "default": { "border": "1px solid neutral.200" }, "focus": { "border": "1px solid primary.500", "box_shadow": "0 4px 12px rgba(34,159,255,0.12)" }, "error": { "border": "1px solid error.500" } },
+"validation": "Use Zod schemas; show inline error messages in caption style red with icon"
+},
+"Card": {
+"sizes": { "sm": { "padding": 12 }, "md": { "padding": 20 }, "lg": { "padding": 32 } },
+"shadow": "subtle",
+"border_radius": "medium"
+},
+"Modal": {
+"dimensions": { "max_width": 920, "padding": 24 },
+"overlay": { "background": "rgba(9,10,10,0.6)" },
+"close_behaviour": "escape key, overlay click; confirm modal requires explicit action to avoid accidental closure"
+},
+"Table": {
+"behavior": "virtualized for long lists, sortable columns, pagination or infinite scroll toggle",
+"styling": { "row_height": 56, "hover": "row highlight neutral.50", "striped": false }
+},
+"Badge": { "sizes": { "sm": 18, "md": 22 }, "variants": [ "neutral", "success", "warning", "error", "info" ] },
+"Toast": { "position": "top-right", "duration_ms": 5000, "variants": [ "info", "success", "warning", "error" ] },
+"Avatar": { "sizes": [32, 48, 64], "fallback": "initials with background neutral.200" },
+"Chart": { "types": [ "line", "area", "bar", "candlestick" ], "responsive": true, "tooltips": "rich with exact numeric formatting and sign" }
+},
+"pages": [
+{
+"page_id": "landing_page",
+"page_name": "Landing",
+"purpose": "Introduce OmniVault, product value props, quickstart links, and prominent 'Connect Wallet' CTA to drive signups and conversions.",
+"layout": "Header (fixed) + Hero (full-bleed with 2-column content) + Features grid (3 columns) + How it works (4 steps horizontal) + Testimonials + Footer. Max-width container 1200px centered.",
+"components": [
+{
+"component_id": "header_nav",
+"type": "Navbar",
+"content": {
+"logo": "Qubic OmniVault (SVG)",
+"nav_items": [ { "label": "Products", "href": "/#products" }, { "label": "How it works", "href": "/#how" }, { "label": "Docs", "href": "https://docs.qubic-omnivaul.example" }, { "label": "Dashboard", "href": "/app" } ],
+"cta": { "label": "Connect Wallet", "action": "openWalletModal" }
+},
+"position": "top fixed, full width",
+"styling": { "background": "transparent until scroll then glass + blur from design_tokens", "height": 72, "padding": "0 lg:24px" },
+"behavior": { "onScroll": "change background to frosted card; shrink logo slightly", "mobile": "hamburger menu" },
+"animations": "fade-in-down (duration 320ms, curve micro)"
+},
+{
+"component_id": "hero_section",
+"type": "Hero",
+"content": {
+"headline": "Tokenize Real-World Collateral. Borrow, Lend, and Earn on Qubic.",
+"subheadline": "Mint oqAssets from invoices and assets, unlock liquidity, and route yields — all with deterministic execution on Qubic.",
+"primary_cta": { "label": "Get Started", "action": "navigate:/app/onboarding" },
+"secondary_cta": { "label": "Watch Demo", "action": "openModal:demo_video" },
+"visual": { "type": "illustration", "src": "hero-illustration.svg", "alt": "Diagram of tokenized invoices and liquidity flows" }
+},
+"position": "below header, center-left column content, center-right illustration",
+"styling": { "bg": "linear-gradient(180deg, primary.50 0%, neutral.50 100%)", "padding": "xxl", "border_radius": "large" },
+"behavior": { "primary_cta": "scroll to onboarding", "secondary_cta": "plays embedded video" },
+"animations": "staggered fade-in-up for text and image (spring_soft)"
+},
+{
+"component_id": "features_grid",
+"type": "Cards Grid",
+"content": [
+{ "title": "Invoice Tokenization", "desc": "Issue oqAssets backed by verified invoices with immutable proofs." },
+{ "title": "On-Chain Borrowing", "desc": "Use oqAssets as collateral to borrow stable liquidity on Qubic." },
+{ "title": "Automated Risk Alerts", "desc": "EasyConnect templates notify your community on price moves." }
+],
+"position": "below hero, 3-column grid (desktop), 1-column (mobile)",
+"styling": { "gap": "lg", "card_style": "Card.md" },
+"behavior": { "cardsClickable": true, "hoverLift": true },
+"animations": "cards fade-in with slight upward motion"
+},
+{
+"component_id": "footer",
+"type": "Footer",
+"content": { "links": [ "Docs", "Terms", "Privacy", "Contact" ], "social": [ "discord", "twitter" ], "copyright": "© Qubic OmniVault 2025" },
+"position": "bottom",
+"styling": { "bg": "neutral.900", "text": "white", "padding": "xl" },
+"behavior": { "smallScreenColumns": 2 }
+}
+],
+"responsive_breakpoints": {
+"mobile": { "max_width_px": 640, "layout_changes": "single column; header collapses to hamburger; hero illustration hides for bandwidth" },
+"tablet": { "min_width_px": 641, "max_width_px": 1024, "layout_changes": "hero stacks vertically; features become 2 columns" },
+"desktop": { "min_width_px": 1025, "layout_changes": "as designed with 2-column hero and 3-column features grid" }
+}
+},
+{
+"page_id": "dashboard",
+"page_name": "Dashboard",
+"purpose": "Primary user workspace: show portfolio overview, open positions, pools, notifications, and quick actions to tokenize, deposit, borrow, or withdraw.",
+"layout": "Three-column responsive grid: Left: navigation & account summary (sticky), Middle: main content (positions, charts), Right: activity feed & Quick Actions. Max-width 1400px.",
+"components": [
+{
+"component_id": "sidebar_nav",
+"type": "Sidebar",
+"content": { "items": [ "Overview", "My Positions", "Pools", "Tokenize", "Governance", "Settings" ], "user_widget": "avatar + Q-Score" },
+"position": "left column sticky 88px top",
+"styling": { "width": 260, "bg": "neutral.50", "padding": "md" },
+"behavior": { "collapsible": true, "collapsed_width": 72 },
+"animations": "slide-in-left on first render"
+},
+{
+"component_id": "portfolio_card",
+"type": "Card",
+"content": {
+"title": "Portfolio Value",
+"value": "fetch:/api/v1/users/{userId}/portfolio/summary.total_value",
+"change_24h": "fetch:/api/v1/users/{userId}/portfolio/summary.change_24h",
+"breakdown": "pie chart of asset classes (oqAssets, stablecoins, LP tokens)"
+},
+"position": "main column top",
+"styling": { "padding": "lg", "border_radius": "medium" },
+"behavior": { "refresh_on_event": "portfolio_update", "onClick": "navigate:/app/positions" },
+"animations": "count-up for numeric value; chart animates on load"
+},
+{
+"component_id": "positions_table",
+"type": "Table",
+"content": {
+"columns": [ { "id": "asset", "label": "Asset" }, { "id": "collateral_value", "label": "Collateral Value" }, { "id": "loan", "label": "Loan" }, { "id": "ltv", "label": "LTV" }, { "id": "actions", "label": "Actions" } ],
+"data": "fetch:/api/v1/users/{userId}/positions"
+},
+"position": "main column center",
+"styling": { "row_height": 64 },
+"behavior": { "rowClick": "openPositionDetailModal", "actions": [ "repay", "addCollateral", "withdraw" ] },
+"animations": "row hover lift and subtle shadow"
+},
+{
+"component_id": "activity_feed",
+"type": "ActivityFeed",
+"content": { "items": "fetch:/api/v1/users/{userId}/activity?limit=20" },
+"position": "right column top",
+"styling": { "width": 320, "card_style": "Card.sm" },
+"behavior": { "auto_scroll": false, "filter": [ "all", "alerts", "transactions" ] },
+"animations": "items fade-in as they are appended"
+}
+],
+"responsive_breakpoints": {
+"mobile": { "layout_changes": "single column: sidebar collapses to bottom nav; charts collapsible; tables into cards" },
+"tablet": { "layout_changes": "two columns: sidebar hidden but accessible; main + activity" },
+"desktop": { "layout_changes": "three-column layout described above" }
+}
+},
+{
+"page_id": "tokenize_page",
+"page_name": "Tokenize Asset",
+"purpose": "Guide a user through minting an oqAsset from an uploaded invoice or RWA document with a stepper UI and review before minting transaction submission.",
+"layout": "Centered stepper container (max-width 920px) with 3 steps: Upload → Review & Valuation → Mint",
+"components": [
+{
+"component_id": "stepper",
+"type": "Stepper",
+"content": { "steps": [ "Upload Documents", "Automatic Valuation", "Mint oqAsset" ] },
+"position": "top of container",
+"styling": { "gap": "md", "padding": "lg" },
+"behavior": { "validate_before_next": true }
+},
+{
+"component_id": "upload_form",
+"type": "Form",
+"content": {
+"fields": [
+{ "id": "title", "label": "Invoice Title", "placeholder": "Acme Invoice #1234", "type": "text", "validation": { "required": true, "maxLength": 120 } },
+{ "id": "amount", "label": "Amount (USD)", "placeholder": "1000.00", "type": "number", "validation": { "required": true, "min": 1 } },
+{ "id": "due_date", "label": "Due Date", "type": "date", "validation": { "required": true } },
+{ "id": "document_upload", "label": "Upload Invoice PDF", "type": "file", "validation": { "required": true, "maxSizeMB": 10 } }
+]
+},
+"position": "step 1",
+"styling": { "inputs": "Input.default" },
+"behavior": { "onSubmit": "uploadToObjectStore -> store metadata -> call valuation job" },
+"animations": "field-level validation markers animate in"
+},
+{
+"component_id": "valuation_preview",
+"type": "Card",
+"content": { "title": "Valuation", "source": "fetch:/api/v1/valuation?documentId={id}", "details": [ "suggested_value", "confidence_score", "oracle_sources" ] },
+"position": "step 2",
+"styling": { "badge": "confidence_tag" },
+"behavior": { "accept_suggestion": true, "request_manual_review": true }
+},
+{
+"component_id": "mint_confirmation",
+"type": "Modal",
+"content": { "title": "Confirm Mint", "body": "You are about to mint oqAsset for Invoice #...", "tx_summary": "on-chain gas estimate, fees, nonce" },
+"position": "step 3 modal",
+"behavior": { "onConfirm": "initiate on-chain transaction via wallet; await confirmation; persist txHash" },
+"animations": "modal scale and fade (spring soft)"
+}
+],
+"responsive_breakpoints": {
+"mobile": { "layout_changes": "single column, stepper vertical, uploader full width" },
+"tablet": { "layout_changes": "two-column for step 2 (form + preview)" },
+"desktop": { "layout_changes": "as described in layout" }
+}
+},
+{
+"page_id": "position_detail",
+"page_name": "Position Detail",
+"purpose": "Display detailed data for a single collateralized position and allow actions like repay, add collateral, or trigger manual liquidation.",
+"layout": "Top summary banner + two column grid (left: charts & metrics, right: actions & history)",
+"components": [
+{
+"component_id": "position_summary",
+"type": "Banner",
+"content": { "title": "oqAsset: Invoice #1234", "status_badge": "Healthy/At-Risk", "metrics": { "collateral_value": "fetch", "loan_amount": "fetch", "ltv": "computed" } },
+"position": "top",
+"behavior": { "statusBadgeColor": "based_on_ltv_thresholds" }
+},
+{
+"component_id": "ltv_chart",
+"type": "Chart",
+"content": { "type": "line", "data_source": "fetch:/api/v1/positions/{id}/ltv_timeseries" },
+"position": "left column",
+"styling": { "height": 260 },
+"behavior": { "hover": "show exact timestamp and price" },
+"animations": "draw line animation on mount"
+},
+{
+"component_id": "actions_panel",
+"type": "Card",
+"content": { "buttons": [ { "label": "Add Collateral", "action": "open:addCollateralModal" }, { "label": "Repay", "action": "open:repayModal" }, { "label": "Close Position", "action": "confirm:closePosition" } ] },
+"position": "right column top",
+"styling": { "padding": "md" },
+"behavior": { "button_disabled_logic": "if pending txs or insufficient approvals" }
+}
+],
+"responsive_breakpoints": {
+"mobile": { "layout_changes": "stack: banner -> actions -> charts -> history" },
+"tablet": { "layout_changes": "charts above, actions below" },
+"desktop": { "layout_changes": "as designed" }
+}
+},
+{
+"page_id": "settings",
+"page_name": "Settings",
+"purpose": "Manage account, notifications, EasyConnect automations, API keys, and integrations.",
+"layout": "Left navigation + Details pane",
+"components": [
+{
+"component_id": "notifications_settings",
+"type": "Form",
+"content": { "fields": [ { "id": "email_alerts", "label": "Email alerts", "type": "toggle" }, { "id": "telegram_alerts", "label": "Telegram", "type": "input", "placeholder": "Telegram handle or chat ID" }, { "id": "easyconnect_templates", "label": "EasyConnect Templates", "type": "list", "items": "fetch:/api/v1/users/{userId}/easyconnect/templates" } ] },
+"behavior": { "save": "PATCH /api/v1/users/{userId}/preferences" }
+},
+{
+"component_id": "api_keys",
+"type": "List",
+"content": { "items": "fetch:/api/v1/users/{id}/api-keys", "actions": [ "create", "revoke" ] },
+"behavior": { "create": "open modal; show secret once; copy to clipboard" }
+}
+],
+"responsive_breakpoints": {
+"mobile": { "layout_changes": "stacked with accordion sections" },
+"desktop": { "layout_changes": "two-column with nav persistently visible" }
+}
+}
+],
+"user_flows": [
+{
+"flow_id": "signup_onboarding",
+"name": "User Sign-Up & Onboarding",
+"steps": [
+{ "step_number": 1, "page_id": "landing_page", "component_id": "hero_section", "action": "click_primary_cta", "result": "open wallet modal or redirect to onboarding" },
+{ "step_number": 2, "page_id": "landing_page", "component_id": "header_nav", "action": "connect_wallet", "result": "wallet connected; call POST /auth/link-wallet" },
+{ "step_number": 3, "page_id": "tokenize_page", "component_id": "upload_form", "action": "submit", "result": "files uploaded to object store; valuation job started" },
+{ "step_number": 4, "page_id": "tokenize_page", "component_id": "valuation_preview", "action": "accept", "result": "mint modal ready; shows gas estimate" },
+{ "step_number": 5, "page_id": "tokenize_page", "component_id": "mint_confirmation", "action": "confirm_mint", "result": "on-chain tx initiated; user sees pending state; account updated on confirmation" }
+]
+},
+{
+"flow_id": "borrow_against_invoice",
+"name": "Borrow Against Tokenized Invoice",
+"steps": [
+{ "step_number": 1, "page_id": "dashboard", "component_id": "portfolio_card", "action": "click_deposit", "result": "open deposit modal" },
+{ "step_number": 2, "page_id": "dashboard", "component_id": "positions_table", "action": "select_position", "result": "open position_detail" },
+{ "step_number": 3, "page_id": "position_detail", "component_id": "actions_panel", "action": "repay_or_borrow", "result": "execute transaction via wallet" },
+{ "step_number": 4, "page_id": "dashboard", "component_id": "activity_feed", "action": "observe_event", "result": "notification via WebSocket and optional EasyConnect templates fire" }
+]
+},
+{
+"flow_id": "automation_setup",
+"name": "Create EasyConnect Automation",
+"steps": [
+{ "step_number": 1, "page_id": "settings", "component_id": "notifications_settings", "action": "open_easyconnect_templates", "result": "list of templates displayed" },
+{ "step_number": 2, "page_id": "settings", "component_id": "notifications_settings", "action": "select_template", "result": "configure mapping of event fields to template variables" },
+{ "step_number": 3, "page_id": "settings", "component_id": "notifications_settings", "action": "save_template", "result": "EasyConnect API called to persist mapping; on event trigger, webhook dispatched" }
+]
+}
+]
+},
+"backend_specs": {
+"api_specification": [
+{
+"method": "POST",
+"path": "/api/v1/auth/register",
+"request_headers": { "Content-Type": "application/json" },
+"request_body_schema": {
+"type": "object",
+"required": [ "wallet_address", "email" ],
+"properties": {
+"wallet_address": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" },
+"email": { "type": "string", "format": "email" },
+"referral_code": { "type": "string" }
+}
+},
+"response_success_schema": { "type": "object", "properties": { "user_id": { "type": "string" }, "jwt": { "type": "string" }, "refresh_token": { "type": "string" } } },
+"response_error_codes": [ { "code": 400, "message": "Invalid payload" }, { "code": 409, "message": "Wallet already registered" } ],
+"authentication_required": false,
+"rate_limiting": { "requests_per_minute": 10 },
+"description": "Register a new user and link a wallet. Returns JWT and refresh token."
+},
+{
+"method": "POST",
+"path": "/api/v1/auth/login",
+"request_headers": { "Content-Type": "application/json" },
+"request_body_schema": {
+"type": "object",
+"required": [ "wallet_address", "signature", "nonce" ],
+"properties": { "wallet_address": { "type": "string" }, "signature": { "type": "string" }, "nonce": { "type": "string" } }
+},
+"response_success_schema": { "type": "object", "properties": { "jwt": { "type": "string" }, "refresh_token": { "type": "string" } } },
+"response_error_codes": [ { "code": 401, "message": "Invalid signature" } ],
+"authentication_required": false,
+"rate_limiting": { "requests_per_minute": 30 },
+"description": "Authenticate user by wallet signature (non-custodial)."
+},
+{
+"method": "POST",
+"path": "/api/v1/tokenize",
+"request_headers": { "Authorization": "Bearer <jwt>", "Content-Type": "multipart/form-data" },
+"request_body_schema": {
+"type": "multipart",
+"fields": {
+"title": { "type": "string" },
+"amount": { "type": "number" },
+"due_date": { "type": "string", "format": "date" },
+"documents": { "type": "array", "items": { "type": "file" } }
+}
+},
+"response_success_schema": {
+"type": "object",
+"properties": { "document_id": { "type": "string" }, "valuation_job_id": { "type": "string" } }
+},
+"response_error_codes": [ { "code": 400, "message": "Validation error" }, { "code": 413, "message": "File too large" } ],
+"authentication_required": true,
+"rate_limiting": { "requests_per_minute": 5 },
+"description": "Upload documents and create a tokenization job. Returns doc id and valuation job id."
+},
+{
+"method": "GET",
+"path": "/api/v1/valuation/{jobId}",
+"request_headers": { "Authorization": "Bearer <jwt>" },
+"request_body_schema": null,
+"response_success_schema": {
+"type": "object",
+"properties": {
+"jobId": { "type": "string" },
+"suggested_value_usd": { "type": "number" },
+"confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+"oracle_sources": { "type": "array", "items": { "type": "string" } },
+"manual_review_required": { "type": "boolean" }
+}
+},
+"response_error_codes": [ { "code": 404, "message": "Job not found" } ],
+"authentication_required": true,
+"rate_limiting": { "requests_per_minute": 30 },
+"description": "Retrieve valuation and confidence score for a tokenization job."
+},
+{
+"method": "POST",
+"path": "/api/v1/mint",
+"request_headers": { "Authorization": "Bearer <jwt>", "Content-Type": "application/json" },
+"request_body_schema": {
+"type": "object",
+"required": [ "document_id", "accepted_value_usd" ],
+"properties": { "document_id": { "type": "string" }, "accepted_value_usd": { "type": "number" }, "slippage_tolerance": { "type": "number", "default": 0.02 } }
+},
+"response_success_schema": { "type": "object", "properties": { "txHash": { "type": "string" }, "oqAsset_id": { "type": "string" } } },
+"response_error_codes": [ { "code": 402, "message": "Insufficient funds for gas" }, { "code": 429, "message": "Too many mint requests" } ],
+"authentication_required": true,
+"rate_limiting": { "requests_per_minute": 3 },
+"description": "Initiate on-chain minting flow for oqAsset; returns tx hash and token id."
+},
+{
+"method": "GET",
+"path": "/api/v1/users/{userId}/portfolio/summary",
+"request_headers": { "Authorization": "Bearer <jwt>" },
+"request_body_schema": null,
+"response_success_schema": {
+"type": "object",
+"properties": { "total_value": { "type": "number" }, "change_24h": { "type": "number" }, "breakdown": { "type": "array", "items": { "type": "object" } } }
+},
+"response_error_codes": [ { "code": 404, "message": "User not found" } ],
+"authentication_required": true,
+"rate_limiting": { "requests_per_minute": 60 },
+"description": "Return portfolio summary for the authenticated user."
+},
+{
+"method": "POST",
+"path": "/api/v1/loans/{loanId}/repay",
+"request_headers": { "Authorization": "Bearer <jwt>", "Content-Type": "application/json" },
+"request_body_schema": { "type": "object", "required": [ "amount" ], "properties": { "amount": { "type": "number" }, "from_wallet": { "type": "string" } } },
+"response_success_schema": { "type": "object", "properties": { "txHash": { "type": "string" }, "remaining_balance": { "type": "number" } } },
+"response_error_codes": [ { "code": 400, "message": "Invalid amount" }, { "code": 403, "message": "Insufficient allowance" } ],
+"authentication_required": true,
+"rate_limiting": { "requests_per_minute": 20 },
+"description": "Repay a loan partially or fully. Returns on-chain tx hash and updated balance."
+},
+{
+"method": "GET",
+"path": "/api/v1/positions",
+"request_headers": { "Authorization": "Bearer <jwt>" },
+"request_body_schema": null,
+"response_success_schema": {
+"type": "array",
+"items": {
+"type": "object",
+"properties": { "position_id": { "type": "string" }, "asset": { "type": "string" }, "collateral_value": { "type": "number" }, "loan_amount": { "type": "number" }, "ltv": { "type": "number" } }
+}
+},
+"response_error_codes": [],
+"authentication_required": true,
+"rate_limiting": { "requests_per_minute": 60 },
+"description": "List user positions with current metrics."
+},
+{
+"method": "POST",
+"path": "/api/v1/easyconnect/templates",
+"request_headers": { "Authorization": "Bearer <jwt>", "Content-Type": "application/json" },
+"request_body_schema": {
+"type": "object",
+"required": [ "template_name", "event_type", "destination" ],
+"properties": { "template_name": { "type": "string" }, "event_type": { "type": "string" }, "destination": { "type": "string" }, "payload_mapping": { "type": "object" } }
+},
+"response_success_schema": { "type": "object", "properties": { "template_id": { "type": "string" } } },
+"response_error_codes": [ { "code": 400, "message": "Invalid mapping" } ],
+"authentication_required": true,
+"rate_limiting": { "requests_per_minute": 20 },
+"description": "Create EasyConnect template mapping to trigger external automations when events fire."
+}
+],
+"data_models": [
+{
+"model_name": "User",
+"fields": [
+{ "name": "id", "type": "uuid", "validation": "required, primary key" },
+{ "name": "wallet_address", "type": "string", "validation": "required, unique, 0x address" },
+{ "name": "email", "type": "string", "validation": "email, optional" },
+{ "name": "q_score", "type": "number", "validation": "0-100, default 50" },
+{ "name": "kyc_status", "type": "enum", "values": [ "unverified", "pending", "verified", "rejected" ], "default": "unverified" },
+{ "name": "created_at", "type": "timestamp" },
+{ "name": "updated_at", "type": "timestamp" }
+],
+"sample_data": { "id": "uuid-1234", "wallet_address": "0xAbC...", "email": "alice@example.com", "q_score": 72, "kyc_status": "verified" }
+},
+{
+"model_name": "Document",
+"fields": [
+{ "name": "id", "type": "uuid", "validation": "required" },
+{ "name": "user_id", "type": "uuid", "relation": "User.id", "validation": "required" },
+{ "name": "object_store_key", "type": "string", "validation": "required" },
+{ "name": "hash", "type": "string", "validation": "sha256" },
+{ "name": "status", "type": "enum", "values": [ "uploaded", "valued", "minted" ], "default": "uploaded" },
+{ "name": "created_at", "type": "timestamp" }
+],
+"sample_data": { "id": "uuid-doc-1", "user_id": "uuid-1234", "object_store_key": "s3://bucket/doc.pdf", "hash": "abc123", "status": "valued" }
+},
+{
+"model_name": "oqAsset",
+"fields": [
+{ "name": "id", "type": "uuid" },
+{ "name": "document_id", "type": "uuid", "relation": "Document.id" },
+{ "name": "token_id", "type": "string", "validation": "on-chain token id or address" },
+{ "name": "face_value_usd", "type": "number" },
+{ "name": "mint_tx_hash", "type": "string" },
+{ "name": "owner_address", "type": "string" },
+{ "name": "created_at", "type": "timestamp" }
+],
+"sample_data": { "id": "oq-1", "document_id": "uuid-doc-1", "token_id": "0x01", "face_value_usd": 1000 }
+},
+{
+"model_name": "Loan",
+"fields": [
+{ "name": "id", "type": "uuid" },
+{ "name": "user_id", "type": "uuid" },
+{ "name": "oqAsset_id", "type": "uuid" },
+{ "name": "principal_usd", "type": "number" },
+{ "name": "interest_rate_annual", "type": "number" },
+"status": { "type": "enum", "values": [ "active", "repaid", "liquidated" ] },
+{ "name": "ltv", "type": "number" },
+{ "name": "created_at", "type": "timestamp" },
+{ "name": "updated_at", "type": "timestamp" }
+],
+"sample_data": { "id": "loan-1", "user_id": "uuid-1234", "oqAsset_id": "oq-1", "principal_usd": 700, "interest_rate_annual": 0.12, "status": "active", "ltv": 0.7 }
+},
+{
+"model_name": "ValuationJob",
+"fields": [
+{ "name": "id", "type": "uuid" },
+{ "name": "document_id", "type": "uuid" },
+{ "name": "suggested_value", "type": "number" },
+{ "name": "confidence", "type": "number" },
+{ "name": "oracle_sources", "type": "jsonb" },
+{ "name": "status", "type": "enum", "values": [ "pending", "done", "manual_review" ] }
+],
+"sample_data": { "id": "val-1", "document_id": "uuid-doc-1", "suggested_value": 950, "confidence": 0.87, "oracle_sources": [ "oracleA" ], "status": "done" }
+}
+],
+"business_logic": [
+{
+"name": "CalculateLTV(oqAsset, loan)",
+"pseudo_code": "function CalculateLTV(face_value_usd, loan_principal_usd, haircut) {\n  // haircuts account for risk and confidence\n  adjusted_value = face_value_usd * (1 - haircut);\n  ltv = loan_principal_usd / adjusted_value;\n  return roundTo(4, ltv);\n}\n\n// Haircut determined by valuation confidence and asset class\nfunction determineHaircut(confidence, asset_class) {\n  base = 0.12;\n  if (asset_class === 'invoice') base = 0.08;\n  if (confidence < 0.6) base += 0.07;\n  return clamp(base, 0.03, 0.5);\n}"
+},
+{
+"name": "ProcessMint(documentId, acceptedValue, userId)",
+"pseudo_code": "1. Validate user owns documentId and valuation exists.\n2. Reserve funds for gas fees (client submits signed tx via wallet).\n3. Create DB transaction: create oqAsset record with status 'minting'.\n4. Call on-chain mint via Qubic SDK; monitor tx until confirmed.\n5. On success: update oqAsset.token_id, status 'minted'; emit event 'oqAssetMinted'.\n6. Update Accounting ledger with entry: { type: 'mint', amount: acceptedValue, userId, txHash }.\n7. If tx fails after retries: revert DB changes and notify user."
+},
+{
+"name": "AccrueInterestCron",
+"pseudo_code": "every minute:\n  for each active loan:\n    calculate interest = principal * (annual_rate / 525600) // minutes in year\n    update loan.accrued_interest += interest\n    if accumulated_interest crosses threshold push event\n    persist ledger entry for accrual\n    if ltv > maintenance_threshold push liquidation event"
+},
+{
+"name": "HandleLiquidation",
+"pseudo_code": "on liquidation_event:\n  1. Create snapshot of position and notify owner via websocket and EasyConnect.\n  2. Attempt partial liquidation: sell part of collateral on DEX or call protocol function.\n  3. Record on-chain tx and update loan.status if closed.\n  4. If automatic liquidation can't cover outstanding, mark for governance review."
+},
+{
+"name": "UpdateQScore",
+"pseudo_code": "when loan_repaid in full:\n  qDelta = min(10, computeDeltaBasedOnTimeliness())\n  user.q_score = clamp(user.q_score + qDelta, 0, 100)\nwhen loan_defaulted:\n  user.q_score = max(0, user.q_score - 20)\npersist history for audit"
+}
+],
+"authentication_flow": {
+"signup": "User connects wallet -> app requests a nonce from /auth/nonce -> user signs nonce in wallet -> POST /auth/login with wallet_address, signature, nonce -> server verifies signature, creates user record if absent, issues JWT (access_exp: 15m) and refresh token (exp: 30d). Optionally capture email for notifications.",
+"login": "Same wallet-signature flow; support SSO via OAuth if user links external accounts.",
+"token_refresh": "POST /auth/refresh with refresh token -> server validates against DB store, rotates refresh token, issues new access token.",
+"password_reset": "Not applicable for pure wallet-based accounts. For email-linked accounts, standard password reset flow via tokenized email link.",
+"rbac": "Role enumeration: [user, lender, admin, auditor]. Enforce RBAC on endpoints via middleware checking JWT scopes and user roles. Admin endpoints require 2FA and additional IP allowlist."
+},
+"background_jobs": [
+{ "job": "AccrueInterestCron", "schedule": "every 1 minute", "description": "Compute and persist interest accrual and identify liquidation candidates." },
+{ "job": "ValuationSyncJob", "schedule": "every 5 minutes", "description": "Pull latest oracle prices and update valuation time-series." },
+{ "job": "DigestEmailJob", "schedule": "daily 09:00 UTC", "description": "Send user digest of positions and alerts." },
+{ "job": "ReconciliationJob", "schedule": "hourly", "description": "Reconcile on-chain events with off-chain ledger and fix mismatches." },
+{ "job": "GarbageCollectionJob", "schedule": "daily 03:00 UTC", "description": "Remove expired temporary uploads; rotate logs." }
+]
+},
+"non_functional_requirements": {
+"performance": {
+"targets": {
+"lighthouse": { "performance": 90, "accessibility": 95, "best_practices": 90, "seo": 80 },
+"tti_seconds": "<= 3s on 3G-fast emulation after cached assets",
+"fcp_ms": "<= 1000ms after cached assets",
+"p95_api_latency": "<= 250ms for key endpoints (portfolio summary, positions)",
+"concurrent_requests": "support 10k concurrent active users in production cluster with autoscaling"
+},
+"caching_strategy": "Use CDN for static assets, CDN edge rendering for initial HTML where feasible, server-side caching for heavy endpoints (Redis), and client-side caching with stale-while-revalidate via React Query."
+},
+"accessibility": {
+"target_wcag_level": "AA",
+"requirements": [
+"All interactive elements reachable and operable via keyboard (tab order defined).",
+"ARIA labels for non-semantic controls and live regions for dynamic content (alerts).",
+"Contrast ratios: body text >= 4.5:1; large text >= 3:1.",
+"Form validation messages programmatically associated with inputs.",
+"Skip-to-main content anchor for screen readers."
+]
+},
+"security": {
+"practices": [
+"Enforce TLS 1.2+ for all inbound/outbound traffic",
+"JWT signing using RS256 with key rotation and storage in vault",
+"Encrypt sensitive data at rest (Postgres Transparent Data Encryption if available) and object storage server-side encryption",
+"Input validation & parameterized queries to prevent SQL injection",
+"Content Security Policy (CSP) to mitigate XSS",
+"Rate-limiting and IP throttling at API Gateway",
+"Use HSM or KMS for private key storage (for any server-side signing)",
+"Perform SCA (Static Code Analysis), Dependency Scanning, and regular pen tests",
+"Implement monitoring for suspicious patterns (e.g., repeated failed signature verifications)"
+],
+"compliance_notes": "If KYC is enabled, ensure storage and handling of PII follow GDPR and local data-protection laws. Provide data export and delete endpoints to comply with regulations."
+},
+"scalability": {
+"expected_load": { "initial_concurrent_users": 2000, "scale_target_concurrent_users": 10000, "annual_tx_volume": 1000000 },
+"scaling_strategies": [
+"Horizontally scale stateless services with Kubernetes HPA using CPU/memory and custom metrics (queue depth).",
+"Read-replicas for PostgreSQL for heavy analytical reads, isolated reporting cluster.",
+"Sharding strategies for ledger if write volumes grow beyond single DB capability; consider ClickHouse for analytics.",
+"Autoscaling for Redis clusters and partitioning for high throughput.",
+"Adopt event-sourcing patterns and CQRS for read models to separate heavy write loads from read-heavy dashboards."
+]
+}
+},
+"deliverables": {
+"frontend_repo": {
+"description": "A public GitHub repository containing the React + TypeScript SPA implementing all pages, components, Storybook, and tests.",
+"structure": {
+"src": [ "components/", "pages/", "hooks/", "services/api.ts", "styles/", "utils/" ],
+"storybook": "stories for every atom, molecule and page",
+"tests": "unit and e2e tests included",
+"README": "setup instructions, env variables, local dev 'npm run dev', storybook 'npm run storybook'"
+},
+"required_files": [ "Dockerfile", "nginx.conf for static hosting", "vite.config.ts", "tsconfig.json" ]
+},
+"backend_repo": {
+"description": "A public GitHub repository containing the API services (monorepo or separate microservice repos), with OpenAPI spec, migrations, worker services, and integration tests.",
+"structure": { "services": [ "auth/", "lending/", "valuation/", "notifications/" ], "shared_libs": [ "models/", "utils/" ], "migrations": "db/migrations", "docker-compose": "for local dev" },
+"required_files": [ "Dockerfile", "k8s manifests", "openapi.yaml", "README with local dev instructions" ]
+},
+"deployment_scripts": {
+"description": "Scripts and manifests to deploy to Kubernetes and local dev stacks.",
+"items": [ "Terraform main.tf and modules for infra creation", "Kubernetes manifests (Deployment, Service, HPA, CronJob, Secrets)", "Helm charts (optional)", "docker-compose.yml for local dev integration", "makefile with commands: make build, make deploy, make test" ]
+},
+"api_documentation": {
+"description": "Interactive OpenAPI / Swagger UI hosted on /docs with example requests, schemas, and authentication instructions.",
+"requirements": [ "OpenAPI v3.1 spec covering all endpoints", "Auto-generated from code where possible", "Example responses and error codes" ]
+},
+"styleguide": {
+"description": "Storybook + compiled Figma file reflecting design_tokens and component_library.",
+"requirements": [ "Storybook stories for every component state and variant", "Figma file with token exports and component instances", "CSS variables generated from design tokens and included in root :root" ]
+},
+"testing_artifacts": {
+"description": "Complete test suite to validate core flows and CI integration.",
+"requirements": [ "Unit tests >= 80% coverage for business logic", "Integration tests for API endpoints", "Playwright e2e test suites for critical user flows (signup, tokenize, mint, borrow, repay)", "Load test scripts (k6 or Artillery) for performance profiling" ]
+},
+"security_artifacts": {
+"description": "Results and configurations to ensure security hygiene.",
+"requirements": [ "SAST and dependency scans output", "CSP headers and security middleware configured", "Pen test summary report (initial scan)", "Secrets policy and rotation plan" ]
+},
+"ops_docs": {
+"description": "Operational runbook for on-call and recovery",
+"items": [ "Runbooks for incident response", "DB restore steps", "migration rollback procedures", "key rotation procedures", "contact matrix" ]
+}
+}
+}

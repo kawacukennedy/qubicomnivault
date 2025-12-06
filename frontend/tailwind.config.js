@@ -142,6 +142,12 @@ export default {
         springSoft: "spring(400, 30, 0)",
         easeInOutExpo: "cubic-bezier(0.85, 0, 0.15, 1)",
         sharp: "cubic-bezier(0.2, 0, 0, 1)"
+      },
+      transitionTimingFunction: {
+        micro: "cubic-bezier(0.25, 0.8, 0.25, 1)",
+        springSoft: "spring(400, 30, 0)",
+        easeInOutExpo: "cubic-bezier(0.85, 0, 0.15, 1)",
+        sharp: "cubic-bezier(0.2, 0, 0, 1)"
       }
     },
   },

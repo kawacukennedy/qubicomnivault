@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { PieChart, Pie, ResponsiveContainer, Tooltip, LabelList } from 'recharts';
-import { useWebSocket } from '../hooks/useWebSocket';
-import { usePortfolioStore } from '../stores/portfolioStore';
 import { Table } from '../components/ui/Table';
+import { Sidebar } from '../components/Sidebar';
+import { ActivityFeed } from '../components/ActivityFeed';
+import { Chart } from '../components/ui/Chart';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 const Dashboard = () => {
-  const { portfolio, positions, setPortfolio, setPositions } = usePortfolioStore();
+  const [portfolio, setPortfolio] = useState<any>(null);
+  const [positions, setPositions] = useState<any[]>([]);
+  const [activityItems, setActivityItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   useWebSocket('ws://localhost:3001'); // Assume backend WS
 
   useEffect(() => {
@@ -25,11 +30,29 @@ const Dashboard = () => {
           change24h: 0.025,
           breakdown: [
             { name: 'oqAssets', value: 70 },
-            { name: 'Stablecoins', value: 30 },
+            { name: 'Stablecoins', value: 20 },
+            { name: 'LP Tokens', value: 10 },
           ],
         });
         setPositions([
-          { asset: 'oqAsset: Invoice #1234', collateral_value: 1000, loan_amount: 700, ltv: 70 },
+          { id: '1', asset: 'oqAsset: Invoice #1234', collateral_value: 1000, loan_amount: 700, ltv: 70 },
+        ]);
+        setActivityItems([
+          {
+            id: '1',
+            type: 'transaction',
+            title: 'Interest Accrued',
+            description: 'Interest accrued on position',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            amount: 5.23,
+          },
+          {
+            id: '2',
+            type: 'alert',
+            title: 'Position Liquidated',
+            description: 'Position was liquidated due to high LTV',
+            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          },
         ]);
       } catch (err) {
         setError('Failed to load portfolio data');
@@ -38,7 +61,22 @@ const Dashboard = () => {
       }
     };
     loadData();
-  }, [setPortfolio, setPositions]);
+  }, []);
+
+  const sidebarItems = [
+    { label: 'Overview', onClick: () => {} },
+    { label: 'My Positions', onClick: () => {} },
+    { label: 'Pools', onClick: () => {} },
+    { label: 'Tokenize', onClick: () => window.location.href = '/app/tokenize' },
+    { label: 'Governance', onClick: () => {} },
+    { label: 'Settings', onClick: () => window.location.href = '/app/settings' },
+  ];
+
+  const userWidget = {
+    avatar: '',
+    name: 'Alice',
+    qScore: 72,
+  };
 
   return (
     <motion.div
@@ -47,109 +85,113 @@ const Dashboard = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-subtle min-h-screen sticky top-0">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Dashboard</h2>
-            <nav className="space-y-2">
-              <a href="#" className="block px-4 py-2 rounded-medium bg-primary-50 text-primary-700">Overview</a>
-              <a href="#" className="block px-4 py-2 rounded-medium text-neutral-600 hover:bg-neutral-100">My Positions</a>
-              <a href="#" className="block px-4 py-2 rounded-medium text-neutral-600 hover:bg-neutral-100">Pools</a>
-              <a href="/app/tokenize" className="block px-4 py-2 rounded-medium text-neutral-600 hover:bg-neutral-100">Tokenize</a>
-              <a href="#" className="block px-4 py-2 rounded-medium text-neutral-600 hover:bg-neutral-100">Governance</a>
-              <a href="/app/settings" className="block px-4 py-2 rounded-medium text-neutral-600 hover:bg-neutral-100">Settings</a>
-            </nav>
-          </div>
-        </aside>
+        <div className="lg:col-span-3">
+          <Sidebar
+            items={sidebarItems}
+            userWidget={userWidget}
+            collapsible
+            collapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="sticky top-6"
+          />
+        </div>
 
         {/* Main Content */}
-        <main className="flex-1 p-8 order-2 lg:order-1">
-            {/* Portfolio Card */}
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Portfolio Value</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex items-center justify-center h-48">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-                  </div>
-                ) : error ? (
-                  <div className="flex flex-col items-center justify-center h-48 text-error-500">
-                    <p>{error}</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-4"
-                      onClick={() => window.location.reload()}
-                    >
-                      Retry
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-3xl font-bold">${portfolio?.totalValue.toLocaleString()}</div>
-                    <div className="text-green-600">+{(portfolio?.change24h || 0) * 100}% (24h)</div>
-                    <div className="mt-4 h-48">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={portfolio?.breakdown || []}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={40}
-                            outerRadius={80}
-                            paddingAngle={5}
-                            dataKey="value"
-                            fill="#229FFF"
-                          >
-                            <LabelList dataKey="name" position="outside" />
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Positions Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>My Positions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table
-                  data={positions}
-                  columns={[
-                    { id: 'asset', label: 'Asset', accessor: 'asset' },
-                    { id: 'collateral_value', label: 'Collateral Value', accessor: 'collateral_value', render: (value) => `$${value}` },
-                    { id: 'loan_amount', label: 'Loan', accessor: 'loan_amount', render: (value) => `$${value}` },
-                    { id: 'ltv', label: 'LTV', accessor: 'ltv', render: (value) => `${value}%` },
-                    { id: 'actions', label: 'Actions', accessor: () => null, render: () => <Button size="sm" variant="outline">Repay</Button> },
-                  ]}
-                  onRowClick={(item) => console.log('Row clicked', item)}
+        <div className="lg:col-span-6 space-y-6">
+          {/* Portfolio Card */}
+          <Card className="p-6">
+            <h2 className="text-2xl font-semibold mb-4">Portfolio Value</h2>
+            {isLoading ? (
+              <div className="flex items-center justify-center h-48">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center h-48 text-error-500">
+                <p>{error}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => window.location.reload()}
+                >
+                  Retry
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="text-3xl font-bold mb-2">
+                  ${portfolio?.totalValue.toLocaleString()}
+                </div>
+                <div className="text-success-600 mb-4">
+                  +{(portfolio?.change24h || 0) * 100}% (24h)
+                </div>
+                <Chart
+                  type="bar"
+                  data={portfolio?.breakdown || []}
+                  dataKey="value"
+                  xAxisKey="name"
+                  height={200}
                 />
-              </CardContent>
-            </Card>
-        </main>
+              </>
+            )}
+          </Card>
+
+          {/* Positions Table */}
+          <Card className="p-6">
+            <h2 className="text-2xl font-semibold mb-4">My Positions</h2>
+            <Table
+              data={positions}
+              columns={[
+                { id: 'asset', label: 'Asset', accessor: 'asset' },
+                {
+                  id: 'collateral_value',
+                  label: 'Collateral Value',
+                  accessor: 'collateral_value',
+                  render: (value) => `$${value.toLocaleString()}`,
+                },
+                {
+                  id: 'loan_amount',
+                  label: 'Loan',
+                  accessor: 'loan_amount',
+                  render: (value) => `$${value.toLocaleString()}`,
+                },
+                {
+                  id: 'ltv',
+                  label: 'LTV',
+                  accessor: 'ltv',
+                  render: (value) => `${value}%`,
+                },
+                {
+                  id: 'actions',
+                  label: 'Actions',
+                  accessor: () => null,
+                  render: () => (
+                    <div className="space-x-2">
+                      <Button size="sm" variant="outline">
+                        Repay
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        Add Collateral
+                      </Button>
+                    </div>
+                  ),
+                },
+              ]}
+              onRowClick={(item) => console.log('Row clicked', item)}
+            />
+          </Card>
+        </div>
 
         {/* Activity Feed */}
-        <aside className="w-full lg:w-80 bg-white shadow-subtle min-h-screen p-6 order-3 lg:order-2">
-          <h3 className="text-lg font-semibold mb-4">Activity Feed</h3>
-          <div className="space-y-4">
-            <div className="p-4 bg-neutral-50 rounded-medium">
-              <p className="text-sm">Interest accrued: $5.23</p>
-              <p className="text-xs text-neutral-500">2 hours ago</p>
-            </div>
-            <div className="p-4 bg-neutral-50 rounded-medium">
-              <p className="text-sm">Position liquidated</p>
-              <p className="text-xs text-neutral-500">1 day ago</p>
-            </div>
-          </div>
-        </aside>
+        <div className="lg:col-span-3">
+          <ActivityFeed
+            items={activityItems}
+            filter={['all']}
+            className="sticky top-6"
+          />
+        </div>
       </div>
     </motion.div>
   );
