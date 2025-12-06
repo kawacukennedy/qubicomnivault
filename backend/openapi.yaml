@@ -1,0 +1,68 @@
+openapi: 3.0.1
+info:
+  title: Qubic OmniVault API
+  version: 1.0.0
+paths:
+  /api/v1/auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                wallet_address:
+                  type: string
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                  jwt:
+                    type: string
+                  refresh_token:
+                    type: string
+  /api/v1/tokenize:
+    post:
+      summary: Upload documents for tokenization
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                amount:
+                  type: number
+                due_date:
+                  type: string
+                documents:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  document_id:
+                    type: string
+                  valuation_job_id:
+                    type: string
