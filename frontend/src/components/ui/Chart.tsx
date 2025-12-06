@@ -6,6 +6,9 @@ import {
   Area,
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -15,7 +18,7 @@ import {
 } from 'recharts';
 
 interface ChartProps {
-  type: 'line' | 'area' | 'bar' | 'candlestick';
+  type: 'line' | 'area' | 'bar' | 'pie' | 'candlestick';
   data: any[];
   dataKey: string;
   xAxisKey?: string;
@@ -87,6 +90,27 @@ const Chart: React.FC<ChartProps> = ({
             />
             <Bar dataKey={dataKey} fill="#229FFF" />
           </BarChart>
+        );
+      case 'pie':
+        const COLORS = ['#229FFF', '#FF3B3B', '#2AB94B', '#FFA800', '#A05EFF'];
+        return (
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey={dataKey}
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
         );
       case 'candlestick':
         // For candlestick, use ComposedChart with bars for high/low and lines for open/close

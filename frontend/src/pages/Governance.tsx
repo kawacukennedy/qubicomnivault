@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Table } from '../components/ui/Table';
 import { Badge } from '../components/ui/Badge';
 
 const Governance = () => {
   const [proposals, setProposals] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [userVotingPower, setUserVotingPower] = useState(1250);
+  const userVotingPower = 1250;
 
   useEffect(() => {
     // Mock data
