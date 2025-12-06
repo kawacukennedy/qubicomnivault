@@ -15,6 +15,7 @@ import { GovernanceModule } from './modules/governance/governance.module';
 import { WebsocketModule } from './modules/websocket/websocket.module';
 import { ValuationModule } from './modules/valuation/valuation.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { BlockchainModule } from './modules/blockchain/blockchain.module';
 import { User } from './entities/user.entity';
 import { Document } from './entities/document.entity';
 import { oqAsset } from './entities/oqAsset.entity';
@@ -63,6 +64,7 @@ import { ValuationJob } from './entities/valuationJob.entity';
     WebsocketModule,
     ValuationModule,
     DashboardModule,
+    BlockchainModule,
   ],
   controllers: [AppController],
   providers: [AppService],

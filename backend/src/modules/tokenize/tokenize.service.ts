@@ -7,6 +7,7 @@ import { Document } from '../../entities/document.entity';
 import { oqAsset } from '../../entities/oqAsset.entity';
 import { ValuationJob } from '../../entities/valuationJob.entity';
 import { User } from '../../entities/user.entity';
+import { BlockchainService } from '../blockchain/blockchain.service';
 import * as AWS from 'aws-sdk';
 import * as crypto from 'crypto';
 import * as ethers from 'ethers';
@@ -26,6 +27,7 @@ export class TokenizeService {
     private userRepository: Repository<User>,
     @InjectQueue('valuation')
     private valuationQueue: Queue,
+    private blockchainService: BlockchainService,
   ) {
     this.s3 = new AWS.S3({
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -140,14 +142,28 @@ export class TokenizeService {
       throw new NotFoundException('User not found');
     }
 
-    // Generate token ID
-    const tokenId = ethers.keccak256(
-      ethers.toUtf8Bytes(`${document.id}-${Date.now()}`),
+    // Prepare metadata for blockchain minting
+    const maturityDate = new Date();
+    maturityDate.setFullYear(maturityDate.getFullYear() + 1); // 1 year maturity
+
+    const metadata = {
+      documentHash: document.hash,
+      valuation: Math.floor(data.accepted_value_usd * 100), // Convert to cents
+      maturityDate: Math.floor(maturityDate.getTime() / 1000), // Unix timestamp
+      assetType: 'invoice',
+    };
+
+    // Mint on blockchain
+    const txHash = await this.blockchainService.mintOqAsset(
+      user.wallet_address,
+      (data.accepted_value_usd / 100).toString(), // Convert USD to token amount (assuming 1:100 ratio)
+      metadata
     );
 
-    // TODO: Implement actual blockchain minting
-    // For now, simulate minting
-    const txHash = `0x${crypto.randomBytes(32).toString('hex')}`;
+    // Generate token ID from transaction
+    const tokenId = ethers.keccak256(
+      ethers.toUtf8Bytes(`${document.id}-${txHash}`),
+    );
 
     // Create oqAsset record
     const oqAssetEntity = this.oqAssetRepository.create({
