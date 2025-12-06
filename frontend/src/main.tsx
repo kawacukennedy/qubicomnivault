@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
 import App from './App.tsx'
 import { config } from './lib/wagmi'
-import { modal } from './lib/web3modal'
 
 const queryClient = new QueryClient()
 

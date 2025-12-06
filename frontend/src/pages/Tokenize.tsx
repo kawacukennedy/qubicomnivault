@@ -7,7 +7,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Stepper } from '../components/ui/Stepper';
-import { Modal } from '../components/ui/Modal';
+import { Modal, ModalHeader, ModalTitle, ModalContent, ModalFooter } from '../components/ui/Modal';
 
 const steps = [
   { id: 'upload', label: 'Upload Documents' },
@@ -52,7 +52,7 @@ const Tokenize = () => {
     }
   };
 
-  const onSubmit = async (data: TokenizeForm) => {
+  const onSubmit = async () => {
     if (currentStep === 2) {
       setIsLoading(true);
       // Simulate minting
@@ -201,13 +201,17 @@ const Tokenize = () => {
         <Modal
           isOpen={showMintModal}
           onClose={() => setShowMintModal(false)}
-          title="Confirm Mint"
         >
-          <p className="mb-4">
-            Are you sure you want to mint this oqAsset? This will initiate an
-            on-chain transaction.
-          </p>
-          <div className="flex justify-end space-x-4">
+          <ModalHeader>
+            <ModalTitle>Confirm Mint</ModalTitle>
+          </ModalHeader>
+          <ModalContent>
+            <p className="mb-4">
+              Are you sure you want to mint this oqAsset? This will initiate an
+              on-chain transaction.
+            </p>
+          </ModalContent>
+          <ModalFooter>
             <Button
               variant="outline"
               onClick={() => setShowMintModal(false)}
@@ -217,7 +221,7 @@ const Tokenize = () => {
             <Button onClick={handleMintConfirm} disabled={isLoading}>
               {isLoading ? 'Minting...' : 'Confirm'}
             </Button>
-          </div>
+          </ModalFooter>
         </Modal>
       </div>
     </div>
