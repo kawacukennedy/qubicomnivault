@@ -85,9 +85,9 @@ const Dashboard = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 sm:p-6">
         {/* Sidebar */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 order-2 lg:order-1">
           <Sidebar
             items={sidebarItems}
             userWidget={userWidget}
@@ -99,7 +99,7 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content */}
-        <div className="lg:col-span-6 space-y-6">
+        <div className="lg:col-span-6 space-y-6 order-1 lg:order-2">
           {/* Portfolio Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -190,7 +190,7 @@ const Dashboard = () => {
         </div>
 
         {/* Activity Feed */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 order-3">
           <ActivityFeed
             items={activityItems}
             filter={['all']}

@@ -17,8 +17,8 @@ const Connect = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-accent-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-accent-50 flex items-center justify-center px-4 py-8">
+      <div className="max-w-md w-full mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-neutral-900 mb-4">
             Connect Your Wallet

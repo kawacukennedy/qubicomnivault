@@ -20,17 +20,17 @@ const PositionDetail = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-12">
-      <div className="max-w-6xl mx-auto px-4">
+    <div className="min-h-screen bg-neutral-50 py-8 sm:py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Summary Banner */}
         <Banner
           title="oqAsset: Invoice #1234"
           statusBadge={{ label: 'Healthy', variant: 'success' }}
           metrics={metrics}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* LTV Chart */}
           <div>
             <Chart

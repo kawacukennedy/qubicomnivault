@@ -68,15 +68,15 @@ const Governance = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-12">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Governance</h1>
-          <Button>Create Proposal</Button>
+    <div className="min-h-screen bg-neutral-50 py-8 sm:py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold">Governance</h1>
+          <Button className="w-full sm:w-auto">Create Proposal</Button>
         </div>
 
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-2">Your Voting Power</h3>
             <p className="text-2xl font-bold text-primary-600">{userVotingPower.toLocaleString()}</p>
@@ -104,12 +104,12 @@ const Governance = () => {
           ) : (
             <div className="space-y-6">
               {proposals.map((proposal) => (
-                <div key={proposal.id} className="border border-neutral-200 rounded-medium p-6">
-                  <div className="flex justify-between items-start mb-4">
+                <div key={proposal.id} className="border border-neutral-200 rounded-medium p-4 sm:p-6">
+                  <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-4 gap-4">
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold mb-2">{proposal.title}</h3>
-                      <p className="text-neutral-600 mb-4">{proposal.description}</p>
-                      <div className="flex items-center space-x-4">
+                      <h3 className="text-lg sm:text-xl font-semibold mb-2">{proposal.title}</h3>
+                      <p className="text-neutral-600 mb-4 text-sm sm:text-base">{proposal.description}</p>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                         <Badge variant={getStatusColor(proposal.status)}>
                           {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
                         </Badge>
@@ -119,11 +119,12 @@ const Governance = () => {
                       </div>
                     </div>
                     {proposal.status === 'active' && (
-                      <div className="flex space-x-2">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
                         <Button
                           size="sm"
                           variant={proposal.myVote === 'for' ? 'solid' : 'outline'}
                           onClick={() => handleVote(proposal.id, 'for')}
+                          className="w-full sm:w-auto"
                         >
                           For ({proposal.votesFor.toLocaleString()})
                         </Button>
@@ -131,6 +132,7 @@ const Governance = () => {
                           size="sm"
                           variant={proposal.myVote === 'against' ? 'solid' : 'outline'}
                           onClick={() => handleVote(proposal.id, 'against')}
+                          className="w-full sm:w-auto"
                         >
                           Against ({proposal.votesAgainst.toLocaleString()})
                         </Button>

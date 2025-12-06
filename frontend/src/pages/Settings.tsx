@@ -13,11 +13,11 @@ const Settings = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-12">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <div className="min-h-screen bg-neutral-50 py-8 sm:py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Navigation */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 order-2 lg:order-1">
             <nav className="space-y-2">
               {sections.map((section) => (
                 <button
@@ -36,7 +36,7 @@ const Settings = () => {
           </div>
 
           {/* Content */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 order-1 lg:order-2">
             {activeSection === 'notifications' && (
               <Card className="p-6">
                 <h2 className="text-2xl font-semibold mb-6">Notifications</h2>

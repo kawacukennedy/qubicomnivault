@@ -57,22 +57,22 @@ const Pools = () => {
         <h1 className="text-3xl font-bold mb-8">Liquidity Pools</h1>
 
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Total TVL</h3>
-            <p className="text-2xl font-bold text-primary-600">$9.3M</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+          <Card className="p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-2">Total TVL</h3>
+            <p className="text-xl sm:text-2xl font-bold text-primary-600">$9.3M</p>
           </Card>
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">My Liquidity</h3>
-            <p className="text-2xl font-bold text-success-600">$15K</p>
+          <Card className="p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-2">My Liquidity</h3>
+            <p className="text-xl sm:text-2xl font-bold text-success-600">$15K</p>
           </Card>
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">24h Volume</h3>
-            <p className="text-2xl font-bold text-accent-600">$545K</p>
+          <Card className="p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-2">24h Volume</h3>
+            <p className="text-xl sm:text-2xl font-bold text-accent-600">$545K</p>
           </Card>
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Avg APR</h3>
-            <p className="text-2xl font-bold text-warning-600">10.5%</p>
+          <Card className="p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-2">Avg APR</h3>
+            <p className="text-xl sm:text-2xl font-bold text-warning-600">10.5%</p>
           </Card>
         </div>
 

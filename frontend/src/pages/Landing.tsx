@@ -40,15 +40,15 @@ const Landing = () => {
       <Hero {...heroContent} />
 
        {/* How it works */}
-       <section id="how" className="py-20 px-4 bg-neutral-50">
+       <section id="how" className="py-16 sm:py-20 px-4 bg-neutral-50">
          <div className="max-w-7xl mx-auto">
-           <div className="text-center mb-16">
-             <h2 className="text-3xl font-bold mb-4">How It Works</h2>
-             <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+           <div className="text-center mb-12 sm:mb-16">
+             <h2 className="text-2xl sm:text-3xl font-bold mb-4">How It Works</h2>
+             <p className="text-base sm:text-lg text-neutral-600 max-w-2xl mx-auto px-4">
                Transform traditional assets into digital tokens and unlock new financial possibilities.
              </p>
            </div>
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
              <div className="text-center">
                <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
                  <span className="text-2xl font-bold text-primary-600">1</span>
@@ -81,15 +81,15 @@ const Landing = () => {
        </section>
 
        {/* Features Grid */}
-       <section id="products" className="py-20 px-4">
+       <section id="products" className="py-16 sm:py-20 px-4">
          <div className="max-w-7xl mx-auto">
-           <div className="text-center mb-16">
-             <h2 className="text-3xl font-bold mb-4">Key Features</h2>
-             <p className="text-lg text-neutral-600">
+           <div className="text-center mb-12 sm:mb-16">
+             <h2 className="text-2xl sm:text-3xl font-bold mb-4">Key Features</h2>
+             <p className="text-base sm:text-lg text-neutral-600 px-4">
                Everything you need to tokenize, borrow, and earn.
              </p>
            </div>
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
              {features.map((feature, index) => (
                <Card key={index} className="p-6 text-center">
                  <h3 className="text-xl font-semibold mb-4">{feature.title}</h3>
