@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { PieChart, Pie, ResponsiveContainer, Tooltip, LabelList } from 'recharts';
@@ -23,8 +24,14 @@ const Dashboard = () => {
       { asset: 'oqAsset: Invoice #1234', collateral_value: 1000, loan_amount: 700, ltv: 0.7 },
     ]);
   }, [setPortfolio, setPositions]);
+
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <motion.div
+      className="min-h-screen bg-neutral-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="flex">
         {/* Sidebar */}
         <aside className="w-64 bg-white shadow-subtle min-h-screen sticky top-0">
@@ -124,7 +131,7 @@ const Dashboard = () => {
           </div>
         </aside>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
