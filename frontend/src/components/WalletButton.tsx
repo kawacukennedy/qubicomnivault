@@ -4,7 +4,7 @@ import { Button } from './ui/Button';
 
 const WalletButton: React.FC = () => {
   const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
+  const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
 
   if (isConnected) {
@@ -19,8 +19,11 @@ const WalletButton: React.FC = () => {
   }
 
   return (
-    <Button onClick={() => connect({ connector: connectors[0] })}>
-      Connect Wallet
+    <Button
+      onClick={() => connect({ connector: connectors[0] })}
+      disabled={isPending}
+    >
+      {isPending ? 'Connecting...' : 'Connect Wallet'}
     </Button>
   );
 };
