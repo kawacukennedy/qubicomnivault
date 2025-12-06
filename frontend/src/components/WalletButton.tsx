@@ -1,10 +1,10 @@
 import React from 'react';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
 import { Button } from './ui/Button';
+import { modal } from '../lib/web3modal';
 
 const WalletButton: React.FC = () => {
   const { address, isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
 
   if (isConnected) {
@@ -19,11 +19,8 @@ const WalletButton: React.FC = () => {
   }
 
   return (
-    <Button
-      onClick={() => connect({ connector: connectors[0] })}
-      disabled={isPending}
-    >
-      {isPending ? 'Connecting...' : 'Connect Wallet'}
+    <Button onClick={() => modal.open()}>
+      Connect Wallet
     </Button>
   );
 };

@@ -101,8 +101,13 @@ const Dashboard = () => {
         {/* Main Content */}
         <div className="lg:col-span-6 space-y-6">
           {/* Portfolio Card */}
-          <Card className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">Portfolio Value</h2>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card className="p-6">
+              <h2 className="text-2xl font-semibold mb-4">Portfolio Value</h2>
             {isLoading ? (
               <div className="flex items-center justify-center h-48">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
@@ -131,12 +136,12 @@ const Dashboard = () => {
                   type="bar"
                   data={portfolio?.breakdown || []}
                   dataKey="value"
-                  xAxisKey="name"
                   height={200}
                 />
               </>
             )}
-          </Card>
+            </Card>
+          </motion.div>
 
           {/* Positions Table */}
           <Card className="p-6">

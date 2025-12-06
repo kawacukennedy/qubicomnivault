@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from './ui/Button';
+import WalletButton from './WalletButton';
 import { cn } from '../utils/cn';
 
 interface NavItem {
@@ -69,9 +70,13 @@ const Navbar: React.FC<NavbarProps> = ({
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <Button onClick={cta.action} variant="solid" size="sm">
-              {cta.label}
-            </Button>
+            {cta.label === 'Connect Wallet' ? (
+              <WalletButton />
+            ) : (
+              <Button onClick={cta.action} variant="solid" size="sm">
+                {cta.label}
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -134,17 +139,21 @@ const Navbar: React.FC<NavbarProps> = ({
               </a>
             ))}
             <div className="px-3 py-2">
-              <Button
-                onClick={() => {
-                  cta.action();
-                  setIsMobileMenuOpen(false);
-                }}
-                variant="solid"
-                size="sm"
-                className="w-full"
-              >
-                {cta.label}
-              </Button>
+              {cta.label === 'Connect Wallet' ? (
+                <WalletButton />
+              ) : (
+                <Button
+                  onClick={() => {
+                    cta.action();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  variant="solid"
+                  size="sm"
+                  className="w-full"
+                >
+                  {cta.label}
+                </Button>
+              )}
             </div>
           </div>
         </div>
