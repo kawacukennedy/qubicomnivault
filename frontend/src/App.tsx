@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Tokenize from './pages/Tokenize';
 import PositionDetail from './pages/PositionDetail';
 import Settings from './pages/Settings';
+import ToastContainer from './components/ToastContainer';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/app/positions/:id" element={<PositionDetail />} />
         <Route path="/app/settings" element={<Settings />} />
       </Routes>
+      <ToastContainer />
     </Router>
   );
 }
