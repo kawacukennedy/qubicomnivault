@@ -52,7 +52,7 @@ const Tokenize = () => {
     }
   };
 
-  const onSubmit = async () => {
+  const onSubmit = async (_data: TokenizeForm) => {
     if (currentStep === 2) {
       setIsLoading(true);
       // Simulate minting
