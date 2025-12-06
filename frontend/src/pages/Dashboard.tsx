@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -9,21 +9,35 @@ import { Table } from '../components/ui/Table';
 
 const Dashboard = () => {
   const { portfolio, positions, setPortfolio, setPositions } = usePortfolioStore();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   useWebSocket('ws://localhost:3001'); // Assume backend WS
 
   useEffect(() => {
-    // Mock real-time data
-    setPortfolio({
-      totalValue: 12345.67,
-      change24h: 0.025,
-      breakdown: [
-        { name: 'oqAssets', value: 70 },
-        { name: 'Stablecoins', value: 30 },
-      ],
-    });
-    setPositions([
-      { asset: 'oqAsset: Invoice #1234', collateral_value: 1000, loan_amount: 700, ltv: 70 },
-    ]);
+    // Mock loading data
+    const loadData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setPortfolio({
+          totalValue: 12345.67,
+          change24h: 0.025,
+          breakdown: [
+            { name: 'oqAssets', value: 70 },
+            { name: 'Stablecoins', value: 30 },
+          ],
+        });
+        setPositions([
+          { asset: 'oqAsset: Invoice #1234', collateral_value: 1000, loan_amount: 700, ltv: 70 },
+        ]);
+      } catch (err) {
+        setError('Failed to load portfolio data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
   }, [setPortfolio, setPositions]);
 
   return (
@@ -57,27 +71,47 @@ const Dashboard = () => {
                 <CardTitle>Portfolio Value</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">${portfolio?.totalValue.toLocaleString()}</div>
-                <div className="text-green-600">+{(portfolio?.change24h || 0) * 100}% (24h)</div>
-                <div className="mt-4 h-48">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={portfolio?.breakdown || []}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                        fill="#229FFF"
-                      >
-                        <LabelList dataKey="name" position="outside" />
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-48">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+                  </div>
+                ) : error ? (
+                  <div className="flex flex-col items-center justify-center h-48 text-error-500">
+                    <p>{error}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-4"
+                      onClick={() => window.location.reload()}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-3xl font-bold">${portfolio?.totalValue.toLocaleString()}</div>
+                    <div className="text-green-600">+{(portfolio?.change24h || 0) * 100}% (24h)</div>
+                    <div className="mt-4 h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={portfolio?.breakdown || []}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={40}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                            fill="#229FFF"
+                          >
+                            <LabelList dataKey="name" position="outside" />
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useNotificationStore } from '../stores/notificationStore';
 import { useForm } from 'react-hook-form';
 // import { zodResolver } from '@hookform/resolvers/zod';
 // import { z } from 'zod';
@@ -17,9 +19,13 @@ const steps = ['Upload Documents', 'Automatic Valuation', 'Mint oqAsset'];
 
 const Tokenize = () => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { addToast } = useNotificationStore();
   const {
     register,
     watch,
+    handleSubmit,
   } = useForm();
 
   const formData = watch();
@@ -28,6 +34,16 @@ const Tokenize = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     }
+  };
+
+  const onSubmit = async (data: any) => {
+    setIsLoading(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsLoading(false);
+    addToast({ message: 'oqAsset minted successfully!', type: 'success' });
+    // Navigate to dashboard
+    navigate('/app');
   };
 
   const handlePrev = () => {
@@ -52,7 +68,7 @@ const Tokenize = () => {
             {currentStep === 0 && (
               <div>
                 <h2 className="text-2xl font-semibold mb-6">Upload Documents</h2>
-                <form className="space-y-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Invoice Title</label>
                     <Input
@@ -107,7 +123,9 @@ const Tokenize = () => {
                   <p>Amount: ${formData?.amount}</p>
                   <p>Gas Estimate: 0.01 ETH</p>
                 </div>
-                <Button size="lg">Confirm Mint</Button>
+                <Button size="lg" disabled={isLoading}>
+                  {isLoading ? 'Minting...' : 'Confirm Mint'}
+                </Button>
               </div>
             )}
           </CardContent>
