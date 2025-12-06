@@ -1,25 +1,29 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-// import { zodResolver } from '@hookform/resolvers/zod';
-// import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { Stepper } from '../components/ui/Stepper';
 
 const steps = ['Upload Documents', 'Automatic Valuation', 'Mint oqAsset'];
 
-// const tokenizeSchema = z.object({
-//   title: z.string().min(1, 'Title is required').max(120, 'Title too long'),
-//   amount: z.number().min(1, 'Amount must be positive'),
-//   dueDate: z.string().min(1, 'Due date is required'),
-// });
+const tokenizeSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(120, 'Title too long'),
+  amount: z.number().min(1, 'Amount must be positive'),
+  dueDate: z.string().min(1, 'Due date is required'),
+});
 
 const Tokenize = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const {
     register,
+    formState: { errors },
     watch,
-  } = useForm();
+  } = useForm({
+    resolver: zodResolver(tokenizeSchema),
+  });
 
   const formData = watch();
 
@@ -40,25 +44,10 @@ const Tokenize = () => {
       <div className="max-w-4xl mx-auto">
         {/* Stepper */}
         <div className="mb-8">
-          <div className="flex justify-between">
-            {steps.map((step, index) => (
-              <div key={index} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                  index <= currentStep ? 'bg-primary-500 text-white' : 'bg-neutral-200 text-neutral-600'
-                }`}>
-                  {index + 1}
-                </div>
-                <span className={`ml-2 ${index <= currentStep ? 'text-primary-700' : 'text-neutral-500'}`}>
-                  {step}
-                </span>
-                {index < steps.length - 1 && (
-                  <div className={`w-16 h-0.5 mx-4 ${
-                    index < currentStep ? 'bg-primary-500' : 'bg-neutral-200'
-                  }`}></div>
-                )}
-              </div>
-            ))}
-          </div>
+          <Stepper
+            steps={steps.map(label => ({ label }))}
+            currentStep={currentStep}
+          />
         </div>
 
         <Card>
@@ -73,7 +62,7 @@ const Tokenize = () => {
                       placeholder="Acme Invoice #1234"
                       {...register('title')}
                     />
-                    {/* {errors.title?.message && <p className="text-error-500 text-sm mt-1">{errors.title.message}</p>} */}
+                    {errors.title?.message && <p className="text-error-500 text-sm mt-1">{errors.title.message}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Amount (USD)</label>
@@ -82,7 +71,7 @@ const Tokenize = () => {
                       placeholder="1000.00"
                       {...register('amount', { valueAsNumber: true })}
                     />
-                    {/* {errors.amount?.message && <p className="text-error-500 text-sm mt-1">{errors.amount.message}</p>} */}
+                    {errors.amount?.message && <p className="text-error-500 text-sm mt-1">{errors.amount.message}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Due Date</label>
@@ -90,7 +79,7 @@ const Tokenize = () => {
                       type="date"
                       {...register('dueDate')}
                     />
-                    {/* {errors.dueDate?.message && <p className="text-error-500 text-sm mt-1">{errors.dueDate.message}</p>} */}
+                    {errors.dueDate?.message && <p className="text-error-500 text-sm mt-1">{errors.dueDate.message}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Upload Invoice PDF</label>

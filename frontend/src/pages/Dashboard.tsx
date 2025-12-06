@@ -5,9 +5,10 @@ import { Button } from '../components/ui/Button';
 import { PieChart, Pie, ResponsiveContainer, Tooltip, LabelList } from 'recharts';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { usePortfolioStore } from '../stores/portfolioStore';
+import { Table } from '../components/ui/Table';
 
 const Dashboard = () => {
-  const { setPortfolio, setPositions } = usePortfolioStore();
+  const { portfolio, positions, setPortfolio, setPositions } = usePortfolioStore();
   useWebSocket('ws://localhost:3001'); // Assume backend WS
 
   useEffect(() => {
@@ -21,7 +22,7 @@ const Dashboard = () => {
       ],
     });
     setPositions([
-      { asset: 'oqAsset: Invoice #1234', collateral_value: 1000, loan_amount: 700, ltv: 0.7 },
+      { asset: 'oqAsset: Invoice #1234', collateral_value: 1000, loan_amount: 700, ltv: 70 },
     ]);
   }, [setPortfolio, setPositions]);
 
@@ -56,22 +57,20 @@ const Dashboard = () => {
                 <CardTitle>Portfolio Value</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">$12,345.67</div>
-                <div className="text-green-600">+2.5% (24h)</div>
+                <div className="text-3xl font-bold">${portfolio?.totalValue.toLocaleString()}</div>
+                <div className="text-green-600">+{(portfolio?.change24h || 0) * 100}% (24h)</div>
                 <div className="mt-4 h-48">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={[
-                          { name: 'oqAssets', value: 70, fill: '#229FFF' },
-                          { name: 'Stablecoins', value: 30, fill: '#FFB014' },
-                        ]}
+                        data={portfolio?.breakdown || []}
                         cx="50%"
                         cy="50%"
                         innerRadius={40}
                         outerRadius={80}
                         paddingAngle={5}
                         dataKey="value"
+                        fill="#229FFF"
                       >
                         <LabelList dataKey="name" position="outside" />
                       </Pie>
@@ -88,28 +87,17 @@ const Dashboard = () => {
                 <CardTitle>My Positions</CardTitle>
               </CardHeader>
               <CardContent>
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-neutral-200">
-                      <th className="text-left py-2">Asset</th>
-                      <th className="text-left py-2">Collateral Value</th>
-                      <th className="text-left py-2">Loan</th>
-                      <th className="text-left py-2">LTV</th>
-                      <th className="text-left py-2">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b border-neutral-100">
-                      <td className="py-4">oqAsset: Invoice #1234</td>
-                      <td>$1,000</td>
-                      <td>$700</td>
-                      <td>70%</td>
-                      <td>
-                        <Button size="sm" variant="outline">Repay</Button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <Table
+                  data={positions}
+                  columns={[
+                    { id: 'asset', label: 'Asset', accessor: 'asset' },
+                    { id: 'collateral_value', label: 'Collateral Value', accessor: 'collateral_value', render: (value) => `$${value}` },
+                    { id: 'loan_amount', label: 'Loan', accessor: 'loan_amount', render: (value) => `$${value}` },
+                    { id: 'ltv', label: 'LTV', accessor: 'ltv', render: (value) => `${value}%` },
+                    { id: 'actions', label: 'Actions', accessor: () => null, render: () => <Button size="sm" variant="outline">Repay</Button> },
+                  ]}
+                  onRowClick={(item) => console.log('Row clicked', item)}
+                />
               </CardContent>
             </Card>
         </main>
