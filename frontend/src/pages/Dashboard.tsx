@@ -25,7 +25,7 @@ interface Position {
 
 interface ActivityItem {
   id: string;
-  type: string;
+  type: 'transaction' | 'alert' | 'update';
   title: string;
   description: string;
   timestamp: string;

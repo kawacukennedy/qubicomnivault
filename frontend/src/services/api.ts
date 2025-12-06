@@ -2,9 +2,12 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:3001';
 
-const getAuthHeaders = () => {
+const getAuthHeaders = (): Record<string, string> => {
   const token = localStorage.getItem('authToken');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  if (token) {
+    return { Authorization: `Bearer ${token}` };
+  }
+  return {};
 };
 
 // Auth
