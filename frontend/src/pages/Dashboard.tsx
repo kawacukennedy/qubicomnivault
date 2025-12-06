@@ -66,9 +66,9 @@ const Dashboard = () => {
   const sidebarItems = [
     { label: 'Overview', onClick: () => {} },
     { label: 'My Positions', onClick: () => {} },
-    { label: 'Pools', onClick: () => {} },
+    { label: 'Pools', onClick: () => window.location.href = '/app/pools' },
     { label: 'Tokenize', onClick: () => window.location.href = '/app/tokenize' },
-    { label: 'Governance', onClick: () => {} },
+    { label: 'Governance', onClick: () => window.location.href = '/app/governance' },
     { label: 'Settings', onClick: () => window.location.href = '/app/settings' },
   ];
 
