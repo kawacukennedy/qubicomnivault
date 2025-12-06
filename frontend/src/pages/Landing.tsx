@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from '../components/ui/Button';
+import WalletButton from '../components/WalletButton';
 
 const Landing = () => {
   return (
@@ -15,7 +16,7 @@ const Landing = () => {
               <a href="https://docs.qubic-omnivaul.example" className="text-neutral-600 hover:text-primary-600">Docs</a>
               <a href="/app" className="text-neutral-600 hover:text-primary-600">Dashboard</a>
             </nav>
-            <Button>Connect Wallet</Button>
+            <WalletButton />
           </div>
         </div>
       </header>
