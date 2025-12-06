@@ -1,9 +1,28 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { PieChart, Pie, ResponsiveContainer, Tooltip, LabelList } from 'recharts';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { usePortfolioStore } from '../stores/portfolioStore';
 
 const Dashboard = () => {
+  const { setPortfolio, setPositions } = usePortfolioStore();
+  useWebSocket('ws://localhost:3001'); // Assume backend WS
+
+  useEffect(() => {
+    // Mock real-time data
+    setPortfolio({
+      totalValue: 12345.67,
+      change24h: 0.025,
+      breakdown: [
+        { name: 'oqAssets', value: 70 },
+        { name: 'Stablecoins', value: 30 },
+      ],
+    });
+    setPositions([
+      { asset: 'oqAsset: Invoice #1234', collateral_value: 1000, loan_amount: 700, ltv: 0.7 },
+    ]);
+  }, [setPortfolio, setPositions]);
   return (
     <div className="min-h-screen bg-neutral-50">
       <div className="flex">
