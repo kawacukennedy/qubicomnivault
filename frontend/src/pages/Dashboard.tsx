@@ -6,12 +6,36 @@ import { Table } from '../components/ui/Table';
 import { Sidebar } from '../components/Sidebar';
 import { ActivityFeed } from '../components/ActivityFeed';
 import { Chart } from '../components/ui/Chart';
+import { SkeletonChart, Skeleton } from '../components/ui/Skeleton';
 import { useWebSocket } from '../hooks/useWebSocket';
 
+interface Portfolio {
+  totalValue: number;
+  change24h: number;
+  breakdown: { name: string; value: number }[];
+}
+
+interface Position {
+  id: string;
+  asset: string;
+  collateral_value: number;
+  loan_amount: number;
+  ltv: number;
+}
+
+interface ActivityItem {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  amount?: number;
+}
+
 const Dashboard = () => {
-  const [portfolio, setPortfolio] = useState<any>(null);
-  const [positions, setPositions] = useState<any[]>([]);
-  const [activityItems, setActivityItems] = useState<any[]>([]);
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [activityItems, setActivityItems] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -54,9 +78,9 @@ const Dashboard = () => {
             timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
           },
         ]);
-      } catch (err) {
-        setError('Failed to load portfolio data');
-      } finally {
+       } catch {
+         setError('Failed to load portfolio data');
+       } finally {
         setIsLoading(false);
       }
     };
@@ -109,8 +133,10 @@ const Dashboard = () => {
             <Card className="p-6">
               <h2 className="text-2xl font-semibold mb-4">Portfolio Value</h2>
             {isLoading ? (
-              <div className="flex items-center justify-center h-48">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+              <div className="space-y-4">
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-6 w-1/4" />
+                <SkeletonChart />
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center h-48 text-error-500">

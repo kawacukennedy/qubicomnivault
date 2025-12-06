@@ -1,6 +1,11 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:3000/api/v1';
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:3001';
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('authToken');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 // Auth
 export const useRegister = () => {
@@ -37,6 +42,7 @@ export const useTokenize = () => {
     mutationFn: async (formData: FormData) => {
       const response = await fetch(`${API_BASE}/tokenize`, {
         method: 'POST',
+        headers: getAuthHeaders(),
         body: formData,
       });
       if (!response.ok) throw new Error('Tokenization failed');
@@ -49,7 +55,9 @@ export const useValuation = (jobId: string) => {
   return useQuery({
     queryKey: ['valuation', jobId],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE}/valuation/${jobId}`);
+      const response = await fetch(`${API_BASE}/tokenize/valuation/${jobId}`, {
+        headers: getAuthHeaders(),
+      });
       if (!response.ok) throw new Error('Failed to fetch valuation');
       return response.json();
     },
@@ -60,9 +68,12 @@ export const useValuation = (jobId: string) => {
 export const useMint = () => {
   return useMutation({
     mutationFn: async (data: { document_id: string; accepted_value_usd: number }) => {
-      const response = await fetch(`${API_BASE}/mint`, {
+      const response = await fetch(`${API_BASE}/tokenize/mint`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
         body: JSON.stringify(data),
       });
       if (!response.ok) throw new Error('Mint failed');
@@ -72,38 +83,43 @@ export const useMint = () => {
 };
 
 // Portfolio
-export const usePortfolioSummary = (userId: string) => {
+export const usePortfolioSummary = () => {
   return useQuery({
-    queryKey: ['portfolio', userId],
+    queryKey: ['portfolio'],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE}/users/${userId}/portfolio/summary`);
+      const response = await fetch(`${API_BASE}/dashboard/portfolio`, {
+        headers: getAuthHeaders(),
+      });
       if (!response.ok) throw new Error('Failed to fetch portfolio');
       return response.json();
     },
-    enabled: !!userId,
   });
 };
 
-export const usePositions = (userId: string) => {
+export const usePositions = () => {
   return useQuery({
-    queryKey: ['positions', userId],
+    queryKey: ['positions'],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE}/positions`);
+      const response = await fetch(`${API_BASE}/dashboard/positions`, {
+        headers: getAuthHeaders(),
+      });
       if (!response.ok) throw new Error('Failed to fetch positions');
       return response.json();
     },
-    enabled: !!userId,
   });
 };
 
 // Loans
 export const useRepayLoan = () => {
   return useMutation({
-    mutationFn: async ({ loanId, data }: { loanId: string; data: { amount: number; from_wallet?: string } }) => {
+    mutationFn: async ({ loanId, amount }: { loanId: string; amount: number }) => {
       const response = await fetch(`${API_BASE}/loans/${loanId}/repay`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ amount }),
       });
       if (!response.ok) throw new Error('Repay failed');
       return response.json();
@@ -111,17 +127,26 @@ export const useRepayLoan = () => {
   });
 };
 
-// EasyConnect
-export const useCreateTemplate = () => {
-  return useMutation({
-    mutationFn: async (data: { template_name: string; event_type: string; destination: string; payload_mapping?: object }) => {
-      const response = await fetch(`${API_BASE}/easyconnect/templates`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Template creation failed');
+// Pools
+export const usePools = () => {
+  return useQuery({
+    queryKey: ['pools'],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE}/pools`);
+      if (!response.ok) throw new Error('Failed to fetch pools');
       return response.json();
     },
+  });
+};
+
+export const usePoolDetails = (poolId: string) => {
+  return useQuery({
+    queryKey: ['pool', poolId],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE}/pools/${poolId}`);
+      if (!response.ok) throw new Error('Failed to fetch pool details');
+      return response.json();
+    },
+    enabled: !!poolId,
   });
 };
