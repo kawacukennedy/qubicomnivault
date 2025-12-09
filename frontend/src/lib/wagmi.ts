@@ -1,16 +1,21 @@
 import { createConfig, http } from 'wagmi';
 import { mainnet, sepolia } from 'wagmi/chains';
 import { injected, metaMask, walletConnect } from 'wagmi/connectors';
+import { qubic, qubicTestnet } from './chains/qubic';
+import { qubicConnector } from './connectors/qubic';
 
 export const config = createConfig({
-  chains: [mainnet, sepolia], // Add Qubic chain if available
+  chains: [mainnet, sepolia, qubic, qubicTestnet],
   connectors: [
     injected(),
     metaMask(),
-    walletConnect({ projectId: 'your-project-id' }), // Replace with actual project ID
+    walletConnect({ projectId: process.env.REACT_APP_WALLETCONNECT_PROJECT_ID || 'demo-project-id' }),
+    qubicConnector(),
   ],
   transports: {
     [mainnet.id]: http(),
     [sepolia.id]: http(),
+    [qubic.id]: http(process.env.REACT_APP_QUBIC_RPC_URL || 'https://rpc.qubic.org'),
+    [qubicTestnet.id]: http(process.env.REACT_APP_QUBIC_TESTNET_RPC_URL || 'https://testnet-rpc.qubic.org'),
   },
 });
