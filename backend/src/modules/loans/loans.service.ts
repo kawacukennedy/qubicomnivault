@@ -4,6 +4,9 @@ import { Repository } from 'typeorm';
 import { Loan } from '../../entities/loan.entity';
 import { oqAsset } from '../../entities/oqAsset.entity';
 import { User } from '../../entities/user.entity';
+import { BlockchainService } from '../blockchain/blockchain.service';
+import { WebsocketGateway } from '../websocket/websocket.gateway';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class LoansService {
@@ -14,6 +17,9 @@ export class LoansService {
     private oqAssetRepository: Repository<oqAsset>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private blockchainService: BlockchainService,
+    private websocketGateway: WebsocketGateway,
+    private notificationService: NotificationService,
   ) {}
 
   async createLoan(
@@ -46,6 +52,14 @@ export class LoansService {
       throw new BadRequestException('Loan-to-Value ratio cannot exceed 80%');
     }
 
+    // Create loan on blockchain
+    const txHash = await this.blockchainService.createLoan(
+      user.wallet_address,
+      oqAssetEntity.face_value_usd.toString(),
+      data.principal_usd.toString(),
+      oqAssetEntity.token_id,
+    );
+
     const loan = this.loanRepository.create({
       user_id: userId,
       oqAsset_id: data.oqAsset_id,
@@ -57,12 +71,28 @@ export class LoansService {
 
     const savedLoan = await this.loanRepository.save(loan);
 
+    // Notify user via WebSocket
+    this.websocketGateway.emitLoanUpdate(userId, {
+      type: 'created',
+      loan_id: savedLoan.id,
+      tx_hash: txHash,
+    });
+
+    // Send notification
+    try {
+      await this.notificationService.notifyLoanCreated(userId, savedLoan.id, data.principal_usd.toString());
+    } catch (error) {
+      // Don't fail the loan creation if notification fails
+      console.error('Failed to send loan creation notification:', error);
+    }
+
     return {
       loan_id: savedLoan.id,
       principal_usd: savedLoan.principal_usd,
       interest_rate_annual: savedLoan.interest_rate_annual,
       ltv: savedLoan.ltv,
       status: savedLoan.status,
+      tx_hash: txHash,
       created_at: savedLoan.created_at,
     };
   }
@@ -97,7 +127,7 @@ export class LoansService {
   async repayLoan(userId: string, loanId: string, amount: number) {
     const loan = await this.loanRepository.findOne({
       where: { id: loanId, user_id: userId },
-      relations: ['oqAsset'],
+      relations: ['oqAsset', 'user'],
     });
 
     if (!loan) {
@@ -108,17 +138,44 @@ export class LoansService {
       throw new BadRequestException('Loan is not active');
     }
 
-    // TODO: Implement actual repayment logic
-    // For now, just mark as repaid if full amount
-    if (amount >= loan.principal_usd) {
+    // Calculate total owed including accrued interest
+    const now = new Date();
+    const daysElapsed = Math.floor((now.getTime() - loan.created_at.getTime()) / (1000 * 60 * 60 * 24));
+    const accruedInterest = (loan.principal_usd * loan.interest_rate_annual * daysElapsed) / 365;
+    const totalOwed = loan.principal_usd + accruedInterest;
+
+    // Execute repayment on blockchain
+    const txHash = await this.blockchainService.repayLoan(loanId, amount.toString());
+
+    if (amount >= totalOwed) {
       loan.status = 'repaid';
       await this.loanRepository.save(loan);
+
+      // Notify user
+      this.websocketGateway.emitLoanUpdate(userId, {
+        type: 'repaid',
+        loan_id: loan.id,
+        tx_hash: txHash,
+      });
+    } else {
+      // Partial repayment - update principal
+      loan.principal_usd -= amount;
+      await this.loanRepository.save(loan);
+
+      this.websocketGateway.emitLoanUpdate(userId, {
+        type: 'partial_repayment',
+        loan_id: loan.id,
+        repaid_amount: amount,
+        remaining_balance: loan.principal_usd,
+        tx_hash: txHash,
+      });
     }
 
     return {
       loan_id: loan.id,
       status: loan.status,
       repaid_amount: amount,
+      tx_hash: txHash,
     };
   }
 
