@@ -29,7 +29,7 @@ export class PoolsController {
   async addLiquidity(
     @Request() req,
     @Param('id') poolId: string,
-    @Body() body: { amountA: number; amountB: number },
+    @Body() body: { amountA: string; amountB: string },
   ) {
     return this.poolsService.addLiquidity(req.user.userId, poolId, body.amountA, body.amountB);
   }
@@ -41,9 +41,21 @@ export class PoolsController {
   async removeLiquidity(
     @Request() req,
     @Param('id') poolId: string,
-    @Body() body: { lpTokens: number },
+    @Body() body: { lpTokens: string },
   ) {
     return this.poolsService.removeLiquidity(req.user.userId, poolId, body.lpTokens);
+  }
+
+  @Post(':id/swap')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Swap tokens in pool' })
+  @ApiResponse({ status: 200, description: 'Token swap executed successfully' })
+  async swapTokens(
+    @Request() req,
+    @Param('id') poolId: string,
+    @Body() body: { tokenIn: string; amountIn: string; minAmountOut: string },
+  ) {
+    return this.poolsService.swapTokens(req.user.userId, poolId, body.tokenIn, body.amountIn, body.minAmountOut);
   }
 
   @Get('user/liquidity')

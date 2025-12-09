@@ -1,7 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { BlockchainService } from '../blockchain/blockchain.service';
 
 @Injectable()
 export class PoolsService {
+  private readonly logger = new Logger(PoolsService.name);
+
+  constructor(private blockchainService: BlockchainService) {}
   // Mock data for demonstration
   private pools = [
     {
@@ -66,32 +70,78 @@ export class PoolsService {
     return pool;
   }
 
-  async addLiquidity(userId: string, poolId: string, amountA: number, amountB: number) {
-    // TODO: Implement actual liquidity addition
-    return {
-      pool_id: poolId,
-      user_id: userId,
-      amountA,
-      amountB,
-      lp_tokens: Math.sqrt(amountA * amountB), // Simplified calculation
-      tx_hash: `0x${Math.random().toString(16).substr(2, 64)}`,
-    };
+  async addLiquidity(userId: string, poolId: string, amountA: string, amountB: string) {
+    try {
+      // Use blockchain service to add liquidity
+      const txHash = await this.blockchainService.addLiquidity(amountA, amountB);
+
+      this.logger.log(`Liquidity added to pool ${poolId} on Qubic: ${txHash}`);
+
+      // Calculate LP tokens (simplified - in reality this would come from contract)
+      const lpTokens = Math.sqrt(parseFloat(amountA) * parseFloat(amountB)).toString();
+
+      return {
+        pool_id: poolId,
+        user_id: userId,
+        amountA,
+        amountB,
+        lp_tokens: lpTokens,
+        tx_hash: txHash,
+      };
+    } catch (error) {
+      this.logger.error('Failed to add liquidity', error);
+      throw error;
+    }
   }
 
-  async removeLiquidity(userId: string, poolId: string, lpTokens: number) {
-    // TODO: Implement actual liquidity removal
-    return {
-      pool_id: poolId,
-      user_id: userId,
-      lp_tokens_burned: lpTokens,
-      amountA_received: lpTokens * 0.5, // Simplified
-      amountB_received: lpTokens * 0.5,
-      tx_hash: `0x${Math.random().toString(16).substr(2, 64)}`,
-    };
+  async removeLiquidity(userId: string, poolId: string, lpTokens: string) {
+    try {
+      // Use blockchain service to remove liquidity
+      const txHash = await this.blockchainService.removeLiquidity(lpTokens);
+
+      this.logger.log(`Liquidity removed from pool ${poolId} on Qubic: ${txHash}`);
+
+      // Calculate received amounts (simplified - in reality this would come from contract)
+      const amountAReceived = (parseFloat(lpTokens) * 0.5).toString();
+      const amountBReceived = (parseFloat(lpTokens) * 0.5).toString();
+
+      return {
+        pool_id: poolId,
+        user_id: userId,
+        lp_tokens_burned: lpTokens,
+        amountA_received: amountAReceived,
+        amountB_received: amountBReceived,
+        tx_hash: txHash,
+      };
+    } catch (error) {
+      this.logger.error('Failed to remove liquidity', error);
+      throw error;
+    }
+  }
+
+  async swapTokens(userId: string, poolId: string, tokenIn: string, amountIn: string, minAmountOut: string) {
+    try {
+      // Use blockchain service to swap tokens
+      const txHash = await this.blockchainService.swapTokens(tokenIn, amountIn, minAmountOut);
+
+      this.logger.log(`Token swap in pool ${poolId} on Qubic: ${txHash}`);
+
+      return {
+        pool_id: poolId,
+        user_id: userId,
+        token_in: tokenIn,
+        amount_in: amountIn,
+        min_amount_out: minAmountOut,
+        tx_hash: txHash,
+      };
+    } catch (error) {
+      this.logger.error('Failed to swap tokens', error);
+      throw error;
+    }
   }
 
   async getUserLiquidity(userId: string) {
-    // Mock user liquidity data
+    // Mock user liquidity data - TODO: Implement real liquidity position querying
     return [
       {
         pool_id: '1',
