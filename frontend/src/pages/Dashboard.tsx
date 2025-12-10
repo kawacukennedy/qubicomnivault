@@ -57,7 +57,7 @@ const Dashboard = () => {
   const portfolio: Portfolio | null = portfolioData ? {
     totalValue: portfolioData.total_value_usd,
     change24h: portfolioData.change_24h_percentage,
-    breakdown: portfolioData.breakdown.map(item => ({
+    breakdown: portfolioData.breakdown.map((item: any) => ({
       name: item.name,
       value: item.value * 100, // Convert to percentage for chart
     })),

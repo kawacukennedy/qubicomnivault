@@ -20,7 +20,7 @@ const Pools = () => {
   const provideLiquidityMutation = useProvideLiquidity();
   const removeLiquidityMutation = useRemoveLiquidity();
 
-  const poolChartData = pools ? pools.map(pool => ({
+  const poolChartData = pools ? pools.map((pool: any) => ({
     name: pool.name,
     value: pool.tvl,
   })) : [];

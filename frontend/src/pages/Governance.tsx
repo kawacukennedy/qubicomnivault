@@ -52,7 +52,7 @@ const Governance = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-2">Active Proposals</h3>
             <p className="text-2xl font-bold text-warning-600">
-              {proposals?.filter(p => p.status === 'active').length || 0}
+              {proposals?.filter((p: any) => p.status === 'active').length || 0}
             </p>
           </Card>
           <Card className="p-6">
@@ -70,7 +70,7 @@ const Governance = () => {
             </div>
           ) : (
             <div className="space-y-6">
-              {proposals?.map((proposal) => (
+              {proposals?.map((proposal: any) => (
                 <div key={proposal.id} className="border border-neutral-200 rounded-medium p-4 sm:p-6">
                   <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-4 gap-4">
                     <div className="flex-1">
