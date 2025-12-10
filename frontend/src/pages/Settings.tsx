@@ -3,9 +3,36 @@ import { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { Modal, ModalHeader, ModalTitle, ModalContent, ModalFooter } from '../components/ui/Modal';
+import { Badge } from '../components/ui/Badge';
+import {
+  useUserPreferences,
+  useUpdatePreferences,
+  useEasyConnectTemplates,
+  useCreateEasyConnectTemplate,
+  useApiKeys,
+  useCreateApiKey,
+  useRevokeApiKey
+} from '../services/api';
 
 const Settings = () => {
   const [activeSection, setActiveSection] = useState('notifications');
+  const [easyConnectModal, setEasyConnectModal] = useState(false);
+  const [newTemplate, setNewTemplate] = useState({
+    template_name: '',
+    event_type: '',
+    destination: '',
+    payload_mapping: {}
+  });
+  const [newApiKeyName, setNewApiKeyName] = useState('');
+
+  const { data: preferences } = useUserPreferences();
+  const updatePreferencesMutation = useUpdatePreferences();
+  const { data: templates } = useEasyConnectTemplates();
+  const createTemplateMutation = useCreateEasyConnectTemplate();
+  const { data: apiKeys } = useApiKeys();
+  const createApiKeyMutation = useCreateApiKey();
+  const revokeApiKeyMutation = useRevokeApiKey();
 
   const sections = [
     { id: 'notifications', label: 'Notifications' },
@@ -40,47 +67,72 @@ const Settings = () => {
             {activeSection === 'notifications' && (
               <Card className="p-6">
                 <h2 className="text-2xl font-semibold mb-6">Notifications</h2>
-                <form className="space-y-6">
+                <form
+                  className="space-y-6"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target as HTMLFormElement);
+                    const updatedPreferences = {
+                      email_alerts: formData.get('email_alerts') === 'on',
+                      telegram_handle: formData.get('telegram') as string,
+                    };
+                    try {
+                      await updatePreferencesMutation.mutateAsync(updatedPreferences);
+                      alert('Preferences updated successfully');
+                    } catch (error) {
+                      console.error('Update failed:', error);
+                    }
+                  }}
+                >
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium">Email alerts</label>
-                    <input type="checkbox" className="rounded" />
+                    <input
+                      type="checkbox"
+                      name="email_alerts"
+                      defaultChecked={preferences?.email_alerts}
+                      className="rounded"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       Telegram
                     </label>
-                    <Input placeholder="Telegram handle or chat ID" />
+                    <Input
+                      name="telegram"
+                      placeholder="Telegram handle or chat ID"
+                      defaultValue={preferences?.telegram_handle || ''}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       EasyConnect Templates
                     </label>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="mb-3"
+                      onClick={() => setEasyConnectModal(true)}
+                    >
+                      Create New Template
+                    </Button>
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-medium">
-                        <div>
-                          <p className="font-medium">Liquidation Alert</p>
-                          <p className="text-sm text-neutral-600">
-                            Notify when position LTV exceeds threshold
-                          </p>
+                      {templates?.map((template: any) => (
+                        <div key={template.id} className="flex items-center justify-between p-4 bg-neutral-50 rounded-medium">
+                          <div>
+                            <p className="font-medium">{template.template_name}</p>
+                            <p className="text-sm text-neutral-600">
+                              Event: {template.event_type} → {template.destination}
+                            </p>
+                          </div>
+                          <Badge variant="success">Active</Badge>
                         </div>
-                        <Button size="sm" variant="outline">
-                          Configure
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-medium">
-                        <div>
-                          <p className="font-medium">Interest Accrued</p>
-                          <p className="text-sm text-neutral-600">
-                            Daily summary of interest earned
-                          </p>
-                        </div>
-                        <Button size="sm" variant="outline">
-                          Configure
-                        </Button>
-                      </div>
+                      ))}
                     </div>
                   </div>
-                  <Button type="submit">Save Changes</Button>
+                  <Button type="submit" disabled={updatePreferencesMutation.isLoading}>
+                    {updatePreferencesMutation.isLoading ? 'Saving...' : 'Save Changes'}
+                  </Button>
                 </form>
               </Card>
             )}
@@ -88,36 +140,134 @@ const Settings = () => {
             {activeSection === 'api-keys' && (
               <Card className="p-6">
                 <h2 className="text-2xl font-semibold mb-6">API Keys</h2>
-                <Button className="mb-6">Create New API Key</Button>
+                <div className="flex items-center gap-4 mb-6">
+                  <Input
+                    placeholder="API Key name"
+                    value={newApiKeyName}
+                    onChange={(e) => setNewApiKeyName(e.target.value)}
+                  />
+                  <Button
+                    onClick={async () => {
+                      if (!newApiKeyName) return;
+                      try {
+                        await createApiKeyMutation.mutateAsync({ name: newApiKeyName });
+                        setNewApiKeyName('');
+                        // Refetch
+                        window.location.reload();
+                      } catch (error) {
+                        console.error('Create API key failed:', error);
+                      }
+                    }}
+                    disabled={createApiKeyMutation.isLoading}
+                  >
+                    {createApiKeyMutation.isLoading ? 'Creating...' : 'Create New API Key'}
+                  </Button>
+                </div>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-medium">
-                    <div>
-                      <p className="font-medium">Key: ****-****-****-abcd</p>
-                      <p className="text-sm text-neutral-600">
-                        Created: Jan 15, 2024
-                      </p>
+                  {apiKeys?.map((key: any) => (
+                    <div key={key.id} className="flex items-center justify-between p-4 bg-neutral-50 rounded-medium">
+                      <div>
+                        <p className="font-medium">{key.name}</p>
+                        <p className="text-sm text-neutral-600">
+                          Created: {new Date(key.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          try {
+                            await revokeApiKeyMutation.mutateAsync(key.id);
+                            // Refetch
+                            window.location.reload();
+                          } catch (error) {
+                            console.error('Revoke API key failed:', error);
+                          }
+                        }}
+                        disabled={revokeApiKeyMutation.isLoading}
+                      >
+                        Revoke
+                      </Button>
                     </div>
-                    <Button size="sm" variant="outline">
-                      Revoke
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-medium">
-                    <div>
-                      <p className="font-medium">Key: ****-****-****-efgh</p>
-                      <p className="text-sm text-neutral-600">
-                        Created: Dec 20, 2023
-                      </p>
-                    </div>
-                    <Button size="sm" variant="outline">
-                      Revoke
-                    </Button>
-                  </div>
+                  ))}
                 </div>
               </Card>
             )}
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={easyConnectModal}
+        onClose={() => setEasyConnectModal(false)}
+      >
+        <ModalHeader>
+          <ModalTitle>Create EasyConnect Template</ModalTitle>
+        </ModalHeader>
+        <ModalContent>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Template Name</label>
+              <Input
+                placeholder="e.g., Liquidation Alert"
+                value={newTemplate.template_name}
+                onChange={(e) => setNewTemplate({ ...newTemplate, template_name: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Event Type</label>
+              <select
+                className="w-full px-3 py-2 border border-neutral-200 rounded-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
+                value={newTemplate.event_type}
+                onChange={(e) => setNewTemplate({ ...newTemplate, event_type: e.target.value })}
+              >
+                <option value="">Select event type</option>
+                <option value="liquidation">Liquidation</option>
+                <option value="interest_accrued">Interest Accrued</option>
+                <option value="position_created">Position Created</option>
+                <option value="loan_repaid">Loan Repaid</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Destination</label>
+              <Input
+                placeholder="e.g., Discord webhook URL or Telegram chat ID"
+                value={newTemplate.destination}
+                onChange={(e) => setNewTemplate({ ...newTemplate, destination: e.target.value })}
+              />
+            </div>
+          </div>
+        </ModalContent>
+        <ModalFooter>
+          <Button
+            variant="outline"
+            onClick={() => setEasyConnectModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={async () => {
+              try {
+                await createTemplateMutation.mutateAsync(newTemplate);
+                setEasyConnectModal(false);
+                setNewTemplate({
+                  template_name: '',
+                  event_type: '',
+                  destination: '',
+                  payload_mapping: {}
+                });
+                // Refetch
+                window.location.reload();
+              } catch (error) {
+                console.error('Create template failed:', error);
+              }
+            }}
+            disabled={createTemplateMutation.isLoading || !newTemplate.template_name || !newTemplate.event_type || !newTemplate.destination}
+          >
+            {createTemplateMutation.isLoading ? 'Creating...' : 'Create Template'}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 };
