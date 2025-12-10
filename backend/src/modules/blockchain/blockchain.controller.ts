@@ -166,4 +166,42 @@ export class BlockchainController {
     ]);
     return { blockNumber, gasPrice };
   }
+
+  @Get('health')
+  @ApiOperation({ summary: 'Check Qubic blockchain connectivity' })
+  @ApiResponse({ status: 200, description: 'Qubic blockchain health status' })
+  async getHealth() {
+    try {
+      const blockNumber = await this.blockchainService.getBlockNumber();
+      const gasPrice = await this.blockchainService.getGasPrice();
+
+      return {
+        status: 'healthy',
+        network: 'qubic',
+        blockNumber,
+        gasPrice,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        status: 'unhealthy',
+        network: 'qubic',
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
+
+  @Get('contracts')
+  @ApiOperation({ summary: 'Get deployed contract addresses' })
+  @ApiResponse({ status: 200, description: 'Contract addresses' })
+  getContractAddresses() {
+    return {
+      oqAsset: process.env.OQASSET_CONTRACT_ADDRESS || 'not-deployed',
+      lendingPool: process.env.LENDING_POOL_CONTRACT_ADDRESS || 'not-deployed',
+      liquidityPool: process.env.LIQUIDITY_POOL_CONTRACT_ADDRESS || 'not-deployed',
+      oracle: process.env.ORACLE_CONTRACT_ADDRESS || 'not-deployed',
+      governance: process.env.GOVERNANCE_CONTRACT_ADDRESS || 'not-deployed',
+    };
+  }
 }
