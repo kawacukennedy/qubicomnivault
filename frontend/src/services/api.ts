@@ -2,7 +2,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import * as mockData from './mockData';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:3001';
-const USE_MOCK_DATA = process.env.REACT_APP_USE_MOCK_DATA === 'true' || process.env.NODE_ENV === 'development';
+const USE_MOCK_DATA = true; // Always use mock data until backend is production-ready
 
 const getAuthHeaders = (): Record<string, string> => {
   const token = localStorage.getItem('authToken');
