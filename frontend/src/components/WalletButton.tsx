@@ -1,75 +1,108 @@
-import React, { useState } from 'react';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import React from 'react';
+import { useAccount, useDisconnect } from 'wagmi';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { Button } from './ui/Button';
+import { cn } from '../utils/cn';
 
 interface WalletButtonProps {
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
   children?: React.ReactNode;
+  variant?: 'default' | 'modal';
 }
 
-const WalletButton: React.FC<WalletButtonProps> = ({ onClick, disabled, className, children }) => {
-  const { address, isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
+const WalletButton: React.FC<WalletButtonProps> = ({
+  onClick,
+  disabled,
+  className,
+  children,
+  variant = 'default'
+}) => {
+  const { address, isConnected, chain } = useAccount();
   const { disconnect } = useDisconnect();
-  const [showConnectors, setShowConnectors] = useState(false);
+  const { open } = useWeb3Modal();
 
   const handleClick = () => {
     if (onClick) {
       onClick();
     } else if (!isConnected) {
-      setShowConnectors(true);
+      open();
     }
   };
 
-  const handleConnectorClick = (connectorId: string) => {
-    const connector = connectors.find(c => c.id === connectorId);
-    if (connector) {
-      connect({ connector });
-      setShowConnectors(false);
-    }
+  const handleDisconnect = () => {
+    disconnect();
   };
 
-  if (isConnected) {
+  if (isConnected && address) {
+    if (variant === 'modal') {
+      return (
+        <div className={cn('flex items-center gap-3 p-4', className)}>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-neutral-900">
+                {address.slice(0, 6)}...{address.slice(-4)}
+              </p>
+              <p className="text-xs text-neutral-600">
+                {chain?.name || 'Unknown Network'}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDisconnect}
+            className="ml-auto"
+          >
+            Disconnect
+          </Button>
+        </div>
+      );
+    }
+
     return (
-      <div className={`flex items-center gap-2 ${className || ''}`}>
-        <span className="text-sm">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
-        <Button variant="outline" size="sm" onClick={() => disconnect()}>
+      <div className={cn('flex items-center gap-2', className)}>
+        <div className="flex items-center gap-2 px-3 py-2 bg-neutral-50 rounded-lg border">
+          <div className="w-2 h-2 bg-success-500 rounded-full"></div>
+          <span className="text-sm font-medium">
+            {address.slice(0, 6)}...{address.slice(-4)}
+          </span>
+          {chain && (
+            <span className="text-xs text-neutral-600">
+              {chain.name}
+            </span>
+          )}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDisconnect}
+          className="text-xs"
+        >
           Disconnect
         </Button>
       </div>
     );
   }
 
-  if (showConnectors) {
-    return (
-      <div className={`relative ${className || ''}`}>
-        <div className="absolute top-full mt-2 right-0 bg-white border border-neutral-200 rounded-lg shadow-lg p-2 min-w-48 z-50">
-          <div className="text-xs text-neutral-500 mb-2 px-2">Choose Wallet</div>
-          {connectors.map((connector) => (
-            <button
-              key={connector.id}
-              onClick={() => handleConnectorClick(connector.id)}
-              disabled={!connector.ready || isPending}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {connector.name}
-            </button>
-          ))}
-          <button
-            onClick={() => setShowConnectors(false)}
-            className="w-full text-left px-3 py-2 text-sm text-neutral-500 hover:bg-neutral-50 rounded mt-1"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <Button onClick={handleClick} disabled={disabled} className={className}>
+    <Button
+      onClick={handleClick}
+      disabled={disabled}
+      className={cn(
+        'flex items-center gap-2',
+        className
+      )}
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
       {children || 'Connect Wallet'}
     </Button>
   );

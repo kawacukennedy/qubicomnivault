@@ -1,16 +1,18 @@
 
 import { motion } from 'framer-motion';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { Navbar } from '../components/Navbar';
 import { Hero } from '../components/Hero';
 import { Footer } from '../components/Footer';
 import { Card } from '../components/ui/Card';
 
 const Landing = () => {
+  const { open } = useWeb3Modal();
   const navItems = [
     { label: 'Products', href: '/#products' },
     { label: 'How it works', href: '/#how' },
-    { label: 'Docs', href: 'https://docs.qubic-omnivaul.example' },
-    { label: 'Connect', href: '/connect' },
+    { label: 'Governance', href: '/#governance' },
+    { label: 'About', href: '/#about' },
   ];
 
   const heroContent = {
@@ -35,7 +37,7 @@ const Landing = () => {
       <Navbar
         logo="Qubic OmniVault"
         navItems={navItems}
-        cta={{ label: 'Connect Wallet', action: () => window.location.href = '/connect' }}
+        cta={{ label: 'Connect Wallet', action: () => open() }}
       />
 
       <Hero {...heroContent} />

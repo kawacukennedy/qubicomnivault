@@ -2,7 +2,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import * as mockData from './mockData';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
-const USE_MOCK_DATA = true; // Always use mock data until backend is production-ready
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true' || true; // Always use mock data until backend is production-ready
 
 const getAuthHeaders = (): Record<string, string> => {
   const token = localStorage.getItem('authToken');
