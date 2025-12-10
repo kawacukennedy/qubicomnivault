@@ -189,7 +189,7 @@ const Tokenize = () => {
                      />
                      {errors.document && (
                        <p className="text-error-500 text-sm mt-1">
-                         {errors.document.message}
+                         {String(errors.document.message)}
                        </p>
                      )}
                    </div>
