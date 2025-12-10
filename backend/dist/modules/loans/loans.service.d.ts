@@ -2,11 +2,17 @@ import { Repository } from 'typeorm';
 import { Loan } from '../../entities/loan.entity';
 import { oqAsset } from '../../entities/oqAsset.entity';
 import { User } from '../../entities/user.entity';
+import { BlockchainService } from '../blockchain/blockchain.service';
+import { WebsocketGateway } from '../websocket/websocket.gateway';
+import { NotificationService } from '../notification/notification.service';
 export declare class LoansService {
     private loanRepository;
     private oqAssetRepository;
     private userRepository;
-    constructor(loanRepository: Repository<Loan>, oqAssetRepository: Repository<oqAsset>, userRepository: Repository<User>);
+    private blockchainService;
+    private websocketGateway;
+    private notificationService;
+    constructor(loanRepository: Repository<Loan>, oqAssetRepository: Repository<oqAsset>, userRepository: Repository<User>, blockchainService: BlockchainService, websocketGateway: WebsocketGateway, notificationService: NotificationService);
     createLoan(userId: string, data: {
         oqAsset_id: string;
         principal_usd: number;
@@ -17,6 +23,7 @@ export declare class LoansService {
         interest_rate_annual: any;
         ltv: any;
         status: any;
+        tx_hash: string;
         created_at: any;
     }>;
     getLoans(userId: string): Promise<any>;
@@ -24,6 +31,7 @@ export declare class LoansService {
         loan_id: any;
         status: any;
         repaid_amount: number;
+        tx_hash: string;
     }>;
     getLoanDetails(userId: string, loanId: string): Promise<{
         id: any;

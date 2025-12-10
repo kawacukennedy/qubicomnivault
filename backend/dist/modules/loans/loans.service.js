@@ -20,14 +20,23 @@ const typeorm_2 = require("typeorm");
 const loan_entity_1 = require("../../entities/loan.entity");
 const oqAsset_entity_1 = require("../../entities/oqAsset.entity");
 const user_entity_1 = require("../../entities/user.entity");
+const blockchain_service_1 = require("../blockchain/blockchain.service");
+const websocket_gateway_1 = require("../websocket/websocket.gateway");
+const notification_service_1 = require("../notification/notification.service");
 let LoansService = class LoansService {
     loanRepository;
     oqAssetRepository;
     userRepository;
-    constructor(loanRepository, oqAssetRepository, userRepository) {
+    blockchainService;
+    websocketGateway;
+    notificationService;
+    constructor(loanRepository, oqAssetRepository, userRepository, blockchainService, websocketGateway, notificationService) {
         this.loanRepository = loanRepository;
         this.oqAssetRepository = oqAssetRepository;
         this.userRepository = userRepository;
+        this.blockchainService = blockchainService;
+        this.websocketGateway = websocketGateway;
+        this.notificationService = notificationService;
     }
     async createLoan(userId, data) {
         const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -50,6 +59,7 @@ let LoansService = class LoansService {
         if (ltv > 80) {
             throw new common_1.BadRequestException('Loan-to-Value ratio cannot exceed 80%');
         }
+        const txHash = await this.blockchainService.createLoan(user.wallet_address, oqAssetEntity.face_value_usd.toString(), data.principal_usd.toString(), oqAssetEntity.token_id);
         const loan = this.loanRepository.create({
             user_id: userId,
             oqAsset_id: data.oqAsset_id,
@@ -59,12 +69,24 @@ let LoansService = class LoansService {
             ltv,
         });
         const savedLoan = await this.loanRepository.save(loan);
+        this.websocketGateway.emitLoanUpdate(userId, {
+            type: 'created',
+            loan_id: savedLoan.id,
+            tx_hash: txHash,
+        });
+        try {
+            await this.notificationService.notifyLoanCreated(userId, savedLoan.id, data.principal_usd.toString());
+        }
+        catch (error) {
+            console.error('Failed to send loan creation notification:', error);
+        }
         return {
             loan_id: savedLoan.id,
             principal_usd: savedLoan.principal_usd,
             interest_rate_annual: savedLoan.interest_rate_annual,
             ltv: savedLoan.ltv,
             status: savedLoan.status,
+            tx_hash: txHash,
             created_at: savedLoan.created_at,
         };
     }
@@ -96,7 +118,7 @@ let LoansService = class LoansService {
     async repayLoan(userId, loanId, amount) {
         const loan = await this.loanRepository.findOne({
             where: { id: loanId, user_id: userId },
-            relations: ['oqAsset'],
+            relations: ['oqAsset', 'user'],
         });
         if (!loan) {
             throw new common_1.NotFoundException('Loan not found');
@@ -104,14 +126,36 @@ let LoansService = class LoansService {
         if (loan.status !== 'active') {
             throw new common_1.BadRequestException('Loan is not active');
         }
-        if (amount >= loan.principal_usd) {
+        const now = new Date();
+        const daysElapsed = Math.floor((now.getTime() - loan.created_at.getTime()) / (1000 * 60 * 60 * 24));
+        const accruedInterest = (loan.principal_usd * loan.interest_rate_annual * daysElapsed) / 365;
+        const totalOwed = loan.principal_usd + accruedInterest;
+        const txHash = await this.blockchainService.repayLoan(loanId, amount.toString());
+        if (amount >= totalOwed) {
             loan.status = 'repaid';
             await this.loanRepository.save(loan);
+            this.websocketGateway.emitLoanUpdate(userId, {
+                type: 'repaid',
+                loan_id: loan.id,
+                tx_hash: txHash,
+            });
+        }
+        else {
+            loan.principal_usd -= amount;
+            await this.loanRepository.save(loan);
+            this.websocketGateway.emitLoanUpdate(userId, {
+                type: 'partial_repayment',
+                loan_id: loan.id,
+                repaid_amount: amount,
+                remaining_balance: loan.principal_usd,
+                tx_hash: txHash,
+            });
         }
         return {
             loan_id: loan.id,
             status: loan.status,
             repaid_amount: amount,
+            tx_hash: txHash,
         };
     }
     async getLoanDetails(userId, loanId) {
@@ -153,6 +197,8 @@ exports.LoansService = LoansService = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(loan_entity_1.Loan)),
     __param(1, (0, typeorm_1.InjectRepository)(oqAsset_entity_1.oqAsset)),
     __param(2, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
-    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object, typeof (_b = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _b : Object, typeof (_c = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _c : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object, typeof (_b = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _b : Object, typeof (_c = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _c : Object, blockchain_service_1.BlockchainService,
+        websocket_gateway_1.WebsocketGateway,
+        notification_service_1.NotificationService])
 ], LoansService);
 //# sourceMappingURL=loans.service.js.map

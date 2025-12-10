@@ -12,6 +12,7 @@ export declare class LoansController {
         interest_rate_annual: any;
         ltv: any;
         status: any;
+        tx_hash: string;
         created_at: any;
     }>;
     getLoans(req: any): Promise<any>;
@@ -41,5 +42,6 @@ export declare class LoansController {
         loan_id: any;
         status: any;
         repaid_amount: number;
+        tx_hash: string;
     }>;
 }

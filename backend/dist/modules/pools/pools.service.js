@@ -5,10 +5,20 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var PoolsService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PoolsService = void 0;
 const common_1 = require("@nestjs/common");
-let PoolsService = class PoolsService {
+const blockchain_service_1 = require("../blockchain/blockchain.service");
+let PoolsService = PoolsService_1 = class PoolsService {
+    blockchainService;
+    logger = new common_1.Logger(PoolsService_1.name);
+    constructor(blockchainService) {
+        this.blockchainService = blockchainService;
+    }
     pools = [
         {
             id: '1',
@@ -70,24 +80,61 @@ let PoolsService = class PoolsService {
         return pool;
     }
     async addLiquidity(userId, poolId, amountA, amountB) {
-        return {
-            pool_id: poolId,
-            user_id: userId,
-            amountA,
-            amountB,
-            lp_tokens: Math.sqrt(amountA * amountB),
-            tx_hash: `0x${Math.random().toString(16).substr(2, 64)}`,
-        };
+        try {
+            const txHash = await this.blockchainService.addLiquidity(amountA, amountB);
+            this.logger.log(`Liquidity added to pool ${poolId} on Qubic: ${txHash}`);
+            const lpTokens = Math.sqrt(parseFloat(amountA) * parseFloat(amountB)).toString();
+            return {
+                pool_id: poolId,
+                user_id: userId,
+                amountA,
+                amountB,
+                lp_tokens: lpTokens,
+                tx_hash: txHash,
+            };
+        }
+        catch (error) {
+            this.logger.error('Failed to add liquidity', error);
+            throw error;
+        }
     }
     async removeLiquidity(userId, poolId, lpTokens) {
-        return {
-            pool_id: poolId,
-            user_id: userId,
-            lp_tokens_burned: lpTokens,
-            amountA_received: lpTokens * 0.5,
-            amountB_received: lpTokens * 0.5,
-            tx_hash: `0x${Math.random().toString(16).substr(2, 64)}`,
-        };
+        try {
+            const txHash = await this.blockchainService.removeLiquidity(lpTokens);
+            this.logger.log(`Liquidity removed from pool ${poolId} on Qubic: ${txHash}`);
+            const amountAReceived = (parseFloat(lpTokens) * 0.5).toString();
+            const amountBReceived = (parseFloat(lpTokens) * 0.5).toString();
+            return {
+                pool_id: poolId,
+                user_id: userId,
+                lp_tokens_burned: lpTokens,
+                amountA_received: amountAReceived,
+                amountB_received: amountBReceived,
+                tx_hash: txHash,
+            };
+        }
+        catch (error) {
+            this.logger.error('Failed to remove liquidity', error);
+            throw error;
+        }
+    }
+    async swapTokens(userId, poolId, tokenIn, amountIn, minAmountOut) {
+        try {
+            const txHash = await this.blockchainService.swapTokens(tokenIn, amountIn, minAmountOut);
+            this.logger.log(`Token swap in pool ${poolId} on Qubic: ${txHash}`);
+            return {
+                pool_id: poolId,
+                user_id: userId,
+                token_in: tokenIn,
+                amount_in: amountIn,
+                min_amount_out: minAmountOut,
+                tx_hash: txHash,
+            };
+        }
+        catch (error) {
+            this.logger.error('Failed to swap tokens', error);
+            throw error;
+        }
     }
     async getUserLiquidity(userId) {
         return [
@@ -111,7 +158,8 @@ let PoolsService = class PoolsService {
     }
 };
 exports.PoolsService = PoolsService;
-exports.PoolsService = PoolsService = __decorate([
-    (0, common_1.Injectable)()
+exports.PoolsService = PoolsService = PoolsService_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [blockchain_service_1.BlockchainService])
 ], PoolsService);
 //# sourceMappingURL=pools.service.js.map

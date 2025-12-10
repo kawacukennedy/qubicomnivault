@@ -29,24 +29,36 @@ export declare class PoolsController {
         };
     }>;
     addLiquidity(req: any, poolId: string, body: {
-        amountA: number;
-        amountB: number;
+        amountA: string;
+        amountB: string;
     }): Promise<{
         pool_id: string;
         user_id: string;
-        amountA: number;
-        amountB: number;
-        lp_tokens: number;
+        amountA: string;
+        amountB: string;
+        lp_tokens: string;
         tx_hash: string;
     }>;
     removeLiquidity(req: any, poolId: string, body: {
-        lpTokens: number;
+        lpTokens: string;
     }): Promise<{
         pool_id: string;
         user_id: string;
-        lp_tokens_burned: number;
-        amountA_received: number;
-        amountB_received: number;
+        lp_tokens_burned: string;
+        amountA_received: string;
+        amountB_received: string;
+        tx_hash: string;
+    }>;
+    swapTokens(req: any, poolId: string, body: {
+        tokenIn: string;
+        amountIn: string;
+        minAmountOut: string;
+    }): Promise<{
+        pool_id: string;
+        user_id: string;
+        token_in: string;
+        amount_in: string;
+        min_amount_out: string;
         tx_hash: string;
     }>;
     getUserLiquidity(req: any): Promise<{

@@ -16,5 +16,9 @@ export declare class ValuationProcessor {
         fileKeys: string[];
         userData: any;
     }>): Promise<void>;
+    private consultOracles;
+    private callChainlinkOracle;
+    private callExternalAPI;
+    private callMarketData;
     private delay;
 }

@@ -56,6 +56,7 @@ const document_entity_1 = require("../../entities/document.entity");
 const oqAsset_entity_1 = require("../../entities/oqAsset.entity");
 const valuationJob_entity_1 = require("../../entities/valuationJob.entity");
 const user_entity_1 = require("../../entities/user.entity");
+const blockchain_service_1 = require("../blockchain/blockchain.service");
 const AWS = __importStar(require("aws-sdk"));
 const crypto = __importStar(require("crypto"));
 const ethers = __importStar(require("ethers"));
@@ -65,13 +66,15 @@ let TokenizeService = class TokenizeService {
     valuationJobRepository;
     userRepository;
     valuationQueue;
+    blockchainService;
     s3;
-    constructor(documentRepository, oqAssetRepository, valuationJobRepository, userRepository, valuationQueue) {
+    constructor(documentRepository, oqAssetRepository, valuationJobRepository, userRepository, valuationQueue, blockchainService) {
         this.documentRepository = documentRepository;
         this.oqAssetRepository = oqAssetRepository;
         this.valuationJobRepository = valuationJobRepository;
         this.userRepository = userRepository;
         this.valuationQueue = valuationQueue;
+        this.blockchainService = blockchainService;
         this.s3 = new AWS.S3({
             accessKeyId: process.env.AWS_ACCESS_KEY_ID,
             secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -156,8 +159,16 @@ let TokenizeService = class TokenizeService {
         if (!user) {
             throw new common_1.NotFoundException('User not found');
         }
-        const tokenId = ethers.keccak256(ethers.toUtf8Bytes(`${document.id}-${Date.now()}`));
-        const txHash = `0x${crypto.randomBytes(32).toString('hex')}`;
+        const maturityDate = new Date();
+        maturityDate.setFullYear(maturityDate.getFullYear() + 1);
+        const metadata = {
+            documentHash: document.hash,
+            valuation: Math.floor(data.accepted_value_usd * 100),
+            maturityDate: Math.floor(maturityDate.getTime() / 1000),
+            assetType: 'invoice',
+        };
+        const txHash = await this.blockchainService.mintOqAsset(user.wallet_address, (data.accepted_value_usd / 100).toString(), metadata);
+        const tokenId = ethers.keccak256(ethers.toUtf8Bytes(`${document.id}-${txHash}`));
         const oqAssetEntity = this.oqAssetRepository.create({
             document_id: document.id,
             token_id: tokenId,
@@ -223,6 +234,6 @@ exports.TokenizeService = TokenizeService = __decorate([
     __param(2, (0, typeorm_1.InjectRepository)(valuationJob_entity_1.ValuationJob)),
     __param(3, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __param(4, (0, bull_1.InjectQueue)('valuation')),
-    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object, typeof (_b = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _b : Object, typeof (_c = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _c : Object, typeof (_d = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _d : Object, typeof (_e = typeof bull_2.Queue !== "undefined" && bull_2.Queue) === "function" ? _e : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object, typeof (_b = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _b : Object, typeof (_c = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _c : Object, typeof (_d = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _d : Object, typeof (_e = typeof bull_2.Queue !== "undefined" && bull_2.Queue) === "function" ? _e : Object, blockchain_service_1.BlockchainService])
 ], TokenizeService);
 //# sourceMappingURL=tokenize.service.js.map

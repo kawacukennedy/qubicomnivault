@@ -6,20 +6,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GovernanceModule = void 0;
+exports.NotificationModule = void 0;
 const common_1 = require("@nestjs/common");
-const governance_controller_1 = require("./governance.controller");
-const governance_service_1 = require("./governance.service");
-const blockchain_module_1 = require("../blockchain/blockchain.module");
-let GovernanceModule = class GovernanceModule {
+const notification_controller_1 = require("./notification.controller");
+const notification_service_1 = require("./notification.service");
+let NotificationModule = class NotificationModule {
 };
-exports.GovernanceModule = GovernanceModule;
-exports.GovernanceModule = GovernanceModule = __decorate([
+exports.NotificationModule = NotificationModule;
+exports.NotificationModule = NotificationModule = __decorate([
     (0, common_1.Module)({
-        imports: [blockchain_module_1.BlockchainModule],
-        controllers: [governance_controller_1.GovernanceController],
-        providers: [governance_service_1.GovernanceService],
-        exports: [governance_service_1.GovernanceService],
+        controllers: [notification_controller_1.NotificationController],
+        providers: [notification_service_1.NotificationService],
+        exports: [notification_service_1.NotificationService],
     })
-], GovernanceModule);
-//# sourceMappingURL=governance.module.js.map
+], NotificationModule);
+//# sourceMappingURL=notification.module.js.map

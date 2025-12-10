@@ -24,6 +24,9 @@ const governance_module_1 = require("./modules/governance/governance.module");
 const websocket_module_1 = require("./modules/websocket/websocket.module");
 const valuation_module_1 = require("./modules/valuation/valuation.module");
 const dashboard_module_1 = require("./modules/dashboard/dashboard.module");
+const blockchain_module_1 = require("./modules/blockchain/blockchain.module");
+const scheduler_module_1 = require("./modules/scheduler/scheduler.module");
+const notification_module_1 = require("./modules/notification/notification.module");
 const user_entity_1 = require("./entities/user.entity");
 const document_entity_1 = require("./entities/document.entity");
 const oqAsset_entity_1 = require("./entities/oqAsset.entity");
@@ -75,6 +78,9 @@ exports.AppModule = AppModule = __decorate([
             websocket_module_1.WebsocketModule,
             valuation_module_1.ValuationModule,
             dashboard_module_1.DashboardModule,
+            blockchain_module_1.BlockchainModule,
+            scheduler_module_1.SchedulerModule,
+            notification_module_1.NotificationModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

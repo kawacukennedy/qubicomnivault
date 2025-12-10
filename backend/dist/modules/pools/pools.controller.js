@@ -34,6 +34,9 @@ let PoolsController = class PoolsController {
     async removeLiquidity(req, poolId, body) {
         return this.poolsService.removeLiquidity(req.user.userId, poolId, body.lpTokens);
     }
+    async swapTokens(req, poolId, body) {
+        return this.poolsService.swapTokens(req.user.userId, poolId, body.tokenIn, body.amountIn, body.minAmountOut);
+    }
     async getUserLiquidity(req) {
         return this.poolsService.getUserLiquidity(req.user.userId);
     }
@@ -80,6 +83,18 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, Object]),
     __metadata("design:returntype", Promise)
 ], PoolsController.prototype, "removeLiquidity", null);
+__decorate([
+    (0, common_1.Post)(':id/swap'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiOperation)({ summary: 'Swap tokens in pool' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Token swap executed successfully' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", Promise)
+], PoolsController.prototype, "swapTokens", null);
 __decorate([
     (0, common_1.Get)('user/liquidity'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

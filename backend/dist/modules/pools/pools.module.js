@@ -10,11 +10,13 @@ exports.PoolsModule = void 0;
 const common_1 = require("@nestjs/common");
 const pools_controller_1 = require("./pools.controller");
 const pools_service_1 = require("./pools.service");
+const blockchain_module_1 = require("../blockchain/blockchain.module");
 let PoolsModule = class PoolsModule {
 };
 exports.PoolsModule = PoolsModule;
 exports.PoolsModule = PoolsModule = __decorate([
     (0, common_1.Module)({
+        imports: [blockchain_module_1.BlockchainModule],
         controllers: [pools_controller_1.PoolsController],
         providers: [pools_service_1.PoolsService],
         exports: [pools_service_1.PoolsService],

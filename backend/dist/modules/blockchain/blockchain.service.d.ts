@@ -1,0 +1,31 @@
+import { ConfigService } from '@nestjs/config';
+export declare class BlockchainService {
+    private configService;
+    private readonly logger;
+    private qubicProvider;
+    private qubicWallet;
+    private oqAssetContract;
+    private lendingPoolContract;
+    private liquidityPoolContract;
+    private assetOracleContract;
+    private governanceContract;
+    private signer;
+    constructor(configService: ConfigService);
+    private initializeBlockchain;
+    mintOqAsset(to: string, amount: string, metadata: any): Promise<string>;
+    getOqAssetBalance(address: string): Promise<string>;
+    getOqAssetMetadata(assetId: string): Promise<any>;
+    createLoan(borrower: string, oqAssetAmount: string, stablecoinAmount: string, assetId: string): Promise<string>;
+    repayLoan(loanId: string, amount: string): Promise<string>;
+    getLoanDetails(loanId: string): Promise<any>;
+    addLiquidity(tokenAAmount: string, tokenBAmount: string): Promise<string>;
+    removeLiquidity(liquidityAmount: string): Promise<string>;
+    swapTokens(tokenIn: string, amountIn: string, minAmountOut: string): Promise<string>;
+    submitValuation(assetId: string, value: string): Promise<string>;
+    getValuation(assetId: string): Promise<any>;
+    createProposal(description: string, target: string, data: string, value: string): Promise<string>;
+    castVote(proposalId: string, support: boolean): Promise<string>;
+    getBlockNumber(): Promise<number>;
+    getGasPrice(): Promise<string>;
+    getBalance(address: string): Promise<string>;
+}

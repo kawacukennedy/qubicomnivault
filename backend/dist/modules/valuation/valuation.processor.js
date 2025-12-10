@@ -95,11 +95,7 @@ let ValuationProcessor = ValuationProcessor_1 = class ValuationProcessor {
                 progress: 60,
                 message: 'Consulting oracle sources...',
             });
-            const oracleSources = [
-                { name: 'Chainlink', value: userData.amount * 0.95, confidence: 0.85 },
-                { name: 'Custom API', value: userData.amount * 1.02, confidence: 0.78 },
-                { name: 'Market Data', value: userData.amount * 0.98, confidence: 0.92 },
-            ];
+            const oracleSources = await this.consultOracles(userData);
             await this.delay(2000);
             this.websocketGateway.emitValuationUpdate(jobId, {
                 status: 'processing',
@@ -144,6 +140,46 @@ let ValuationProcessor = ValuationProcessor_1 = class ValuationProcessor {
                 error: error.message,
             });
         }
+    }
+    async consultOracles(userData) {
+        const oracles = [];
+        try {
+            const chainlinkValue = await this.callChainlinkOracle(userData.amount);
+            oracles.push({ name: 'Chainlink', value: chainlinkValue, confidence: 0.85 });
+        }
+        catch (error) {
+            this.logger.warn('Chainlink oracle failed', error);
+        }
+        try {
+            const apiValue = await this.callExternalAPI(userData.amount);
+            oracles.push({ name: 'External API', value: apiValue, confidence: 0.78 });
+        }
+        catch (error) {
+            this.logger.warn('External API failed', error);
+        }
+        try {
+            const marketValue = await this.callMarketData(userData.amount);
+            oracles.push({ name: 'Market Data', value: marketValue, confidence: 0.92 });
+        }
+        catch (error) {
+            this.logger.warn('Market data failed', error);
+        }
+        if (oracles.length === 0) {
+            oracles.push({ name: 'Fallback', value: userData.amount, confidence: 0.5 });
+        }
+        return oracles;
+    }
+    async callChainlinkOracle(amount) {
+        await this.delay(1000);
+        return amount * (0.95 + Math.random() * 0.1);
+    }
+    async callExternalAPI(amount) {
+        await this.delay(800);
+        return amount * (0.98 + Math.random() * 0.08);
+    }
+    async callMarketData(amount) {
+        await this.delay(600);
+        return amount * (0.97 + Math.random() * 0.06);
     }
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));

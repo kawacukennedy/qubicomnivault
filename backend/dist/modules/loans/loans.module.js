@@ -14,12 +14,18 @@ const loans_service_1 = require("./loans.service");
 const loan_entity_1 = require("../../entities/loan.entity");
 const oqAsset_entity_1 = require("../../entities/oqAsset.entity");
 const user_entity_1 = require("../../entities/user.entity");
+const blockchain_module_1 = require("../blockchain/blockchain.module");
+const notification_module_1 = require("../notification/notification.module");
 let LoansModule = class LoansModule {
 };
 exports.LoansModule = LoansModule;
 exports.LoansModule = LoansModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([loan_entity_1.Loan, oqAsset_entity_1.oqAsset, user_entity_1.User])],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([loan_entity_1.Loan, oqAsset_entity_1.oqAsset, user_entity_1.User]),
+            blockchain_module_1.BlockchainModule,
+            notification_module_1.NotificationModule,
+        ],
         controllers: [loans_controller_1.LoansController],
         providers: [loans_service_1.LoansService],
         exports: [loans_service_1.LoansService],

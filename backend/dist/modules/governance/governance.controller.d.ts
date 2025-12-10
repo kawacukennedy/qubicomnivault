@@ -22,23 +22,22 @@ export declare class GovernanceController {
         votesFor: number;
         votesAgainst: number;
         endTime: Date;
-        proposer: string;
-        createdAt: Date;
     }>;
     voteOnProposal(req: any, proposalId: string, body: {
         vote: 'for' | 'against';
     }): Promise<{
         proposal_id: string;
         vote: "for" | "against";
+        tx_hash: string;
         voting_power_used: number;
-        new_votes_for: number;
-        new_votes_against: number;
+        status: string;
     }>;
     createProposal(req: any, body: {
         title: string;
         description: string;
     }): Promise<{
         proposal_id: string;
+        tx_hash: string;
         status: string;
         end_time: Date;
     }>;

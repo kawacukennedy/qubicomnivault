@@ -4,14 +4,16 @@ import { Document } from '../../entities/document.entity';
 import { oqAsset } from '../../entities/oqAsset.entity';
 import { ValuationJob } from '../../entities/valuationJob.entity';
 import { User } from '../../entities/user.entity';
+import { BlockchainService } from '../blockchain/blockchain.service';
 export declare class TokenizeService {
     private documentRepository;
     private oqAssetRepository;
     private valuationJobRepository;
     private userRepository;
     private valuationQueue;
+    private blockchainService;
     private s3;
-    constructor(documentRepository: Repository<Document>, oqAssetRepository: Repository<oqAsset>, valuationJobRepository: Repository<ValuationJob>, userRepository: Repository<User>, valuationQueue: Queue);
+    constructor(documentRepository: Repository<Document>, oqAssetRepository: Repository<oqAsset>, valuationJobRepository: Repository<ValuationJob>, userRepository: Repository<User>, valuationQueue: Queue, blockchainService: BlockchainService);
     tokenize(userId: string, data: {
         title: string;
         amount: number;

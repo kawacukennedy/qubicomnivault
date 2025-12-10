@@ -1,5 +1,8 @@
+import { BlockchainService } from '../blockchain/blockchain.service';
 export declare class GovernanceService {
-    private proposals;
+    private blockchainService;
+    private readonly logger;
+    constructor(blockchainService: BlockchainService);
     getProposals(): Promise<{
         id: string;
         title: string;
@@ -20,21 +23,23 @@ export declare class GovernanceService {
         votesFor: number;
         votesAgainst: number;
         endTime: Date;
-        proposer: string;
-        createdAt: Date;
     }>;
     voteOnProposal(userId: string, proposalId: string, vote: 'for' | 'against'): Promise<{
         proposal_id: string;
         vote: "for" | "against";
+        tx_hash: string;
         voting_power_used: number;
-        new_votes_for: number;
-        new_votes_against: number;
+        status: string;
     }>;
     createProposal(userId: string, data: {
         title: string;
         description: string;
+        target?: string;
+        data?: string;
+        value?: string;
     }): Promise<{
         proposal_id: string;
+        tx_hash: string;
         status: string;
         end_time: Date;
     }>;
