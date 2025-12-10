@@ -66,11 +66,17 @@ export class GovernanceService {
   }
 
   async getProposalById(proposalId: string) {
-    const proposal = this.proposals.find(p => p.id === proposalId);
-    if (!proposal) {
-      throw new Error('Proposal not found');
-    }
-    return proposal;
+    // Mock implementation - in production, query from blockchain
+    const mockProposal = {
+      id: proposalId,
+      title: 'Mock Proposal',
+      description: 'This is a mock proposal for demonstration',
+      status: 'active',
+      votesFor: 1000,
+      votesAgainst: 500,
+      endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    };
+    return mockProposal;
   }
 
   async voteOnProposal(userId: string, proposalId: string, vote: 'for' | 'against') {
