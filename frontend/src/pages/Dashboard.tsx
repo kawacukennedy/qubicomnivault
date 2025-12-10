@@ -6,7 +6,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Table } from '../components/ui/Table';
 import { Sidebar } from '../components/Sidebar';
-import { ActivityFeed } from '../components/ActivityFeed';
+
 import { Chart } from '../components/ui/Chart';
 import { SkeletonChart, Skeleton } from '../components/ui/Skeleton';
 import { useWebSocket } from '../hooks/useWebSocket';
@@ -410,11 +410,6 @@ const Dashboard = () => {
                         accessor: 'status',
                         render: (value) => {
                           const status = value || 'active';
-                          const variants = {
-                            active: 'success',
-                            at_risk: 'warning',
-                            liquidated: 'error'
-                          } as const;
                           return (
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
                               ${status === 'active' ? 'bg-success-100 text-success-800' :
