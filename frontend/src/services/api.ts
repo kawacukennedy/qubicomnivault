@@ -20,7 +20,7 @@ export const useNonce = () => {
       if (USE_MOCK_DATA) {
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 500));
-        return mockNonce;
+        return mockData.mockNonce;
       }
       const response = await fetch(`${API_BASE}/auth/nonce`);
       if (!response.ok) throw new Error('Failed to fetch nonce');
