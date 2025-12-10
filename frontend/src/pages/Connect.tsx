@@ -97,7 +97,12 @@ const Connect = () => {
                     </div>
                   ) : nonceError ? (
                     <div className="text-center">
-                      <p className="text-sm text-red-600 mb-2">Failed to load authentication data</p>
+                      <p className="text-sm text-red-600 mb-2">
+                        Backend server not available. Please start the backend server:
+                      </p>
+                      <p className="text-xs text-neutral-600 mb-2">
+                        cd backend && npm install && npm run start:dev
+                      </p>
                       <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
                         Retry
                       </Button>
