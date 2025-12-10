@@ -1,55 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Table } from '../components/ui/Table';
 import { Chart } from '../components/ui/Chart';
+import { Modal, ModalHeader, ModalTitle, ModalContent, ModalFooter } from '../components/ui/Modal';
+import { Input } from '../components/ui/Input';
+import { usePools, useProvideLiquidity, useRemoveLiquidity } from '../services/api';
 
 const Pools = () => {
-  const [pools, setPools] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [liquidityModal, setLiquidityModal] = useState<{
+    isOpen: boolean;
+    type: 'provide' | 'remove';
+    poolId: string;
+    poolName: string;
+  }>({ isOpen: false, type: 'provide', poolId: '', poolName: '' });
+  const [amount, setAmount] = useState('');
 
-  useEffect(() => {
-    // Mock data
-    const loadPools = async () => {
-      setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setPools([
-        {
-          id: '1',
-          name: 'oqAsset/USDC',
-          tvl: 2500000,
-          apr: 12.5,
-          volume24h: 150000,
-          myLiquidity: 5000,
-        },
-        {
-          id: '2',
-          name: 'oqAsset/DAI',
-          tvl: 1800000,
-          apr: 10.2,
-          volume24h: 95000,
-          myLiquidity: 0,
-        },
-        {
-          id: '3',
-          name: 'USDC/Stable',
-          tvl: 5000000,
-          apr: 8.7,
-          volume24h: 300000,
-          myLiquidity: 10000,
-        },
-      ]);
-      setIsLoading(false);
-    };
-    loadPools();
-  }, []);
+  const { data: pools, isLoading } = usePools();
+  const provideLiquidityMutation = useProvideLiquidity();
+  const removeLiquidityMutation = useRemoveLiquidity();
 
-  const poolChartData = [
-    { name: 'oqAsset/USDC', value: 25 },
-    { name: 'oqAsset/DAI', value: 18 },
-    { name: 'USDC/Stable', value: 50 },
-    { name: 'Others', value: 7 },
-  ];
+  const poolChartData = pools ? pools.map(pool => ({
+    name: pool.name,
+    value: pool.tvl,
+  })) : [];
 
   return (
     <div className="min-h-screen bg-neutral-50 py-12">
@@ -114,23 +88,41 @@ const Pools = () => {
                       accessor: 'myLiquidity',
                       render: (value) => value > 0 ? `$${value.toLocaleString()}` : '-',
                     },
-                    {
-                      id: 'actions',
-                      label: 'Actions',
-                      accessor: () => null,
-                      render: (item) => (
-                        <div className="space-x-2">
-                          <Button size="sm" variant="outline">
-                            {item.myLiquidity > 0 ? 'Add' : 'Provide'}
-                          </Button>
-                          {item.myLiquidity > 0 && (
-                            <Button size="sm" variant="outline">
-                              Remove
-                            </Button>
-                          )}
-                        </div>
-                      ),
-                    },
+                     {
+                       id: 'actions',
+                       label: 'Actions',
+                       accessor: () => null,
+                       render: (item) => (
+                         <div className="space-x-2">
+                           <Button
+                             size="sm"
+                             variant="outline"
+                             onClick={() => setLiquidityModal({
+                               isOpen: true,
+                               type: 'provide',
+                               poolId: item.id,
+                               poolName: item.name,
+                             })}
+                           >
+                             {item.myLiquidity > 0 ? 'Add' : 'Provide'}
+                           </Button>
+                           {item.myLiquidity > 0 && (
+                             <Button
+                               size="sm"
+                               variant="outline"
+                               onClick={() => setLiquidityModal({
+                                 isOpen: true,
+                                 type: 'remove',
+                                 poolId: item.id,
+                                 poolName: item.name,
+                               })}
+                             >
+                               Remove
+                             </Button>
+                           )}
+                         </div>
+                       ),
+                     },
                   ]}
                 />
               )}
@@ -151,6 +143,74 @@ const Pools = () => {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={liquidityModal.isOpen}
+        onClose={() => setLiquidityModal({ ...liquidityModal, isOpen: false })}
+      >
+        <ModalHeader>
+          <ModalTitle>
+            {liquidityModal.type === 'provide' ? 'Provide Liquidity' : 'Remove Liquidity'}
+          </ModalTitle>
+        </ModalHeader>
+        <ModalContent>
+          <div className="space-y-4">
+            <p className="text-sm text-neutral-600">
+              {liquidityModal.type === 'provide'
+                ? `Add liquidity to ${liquidityModal.poolName} pool`
+                : `Remove liquidity from ${liquidityModal.poolName} pool`
+              }
+            </p>
+            <div>
+              <label className="block text-sm font-medium mb-2">Amount (USD)</label>
+              <Input
+                type="number"
+                placeholder="1000.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+          </div>
+        </ModalContent>
+        <ModalFooter>
+          <Button
+            variant="outline"
+            onClick={() => setLiquidityModal({ ...liquidityModal, isOpen: false })}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!amount) return;
+              try {
+                if (liquidityModal.type === 'provide') {
+                  await provideLiquidityMutation.mutateAsync({
+                    poolId: liquidityModal.poolId,
+                    amount: parseFloat(amount),
+                  });
+                } else {
+                  await removeLiquidityMutation.mutateAsync({
+                    poolId: liquidityModal.poolId,
+                    amount: parseFloat(amount),
+                  });
+                }
+                setLiquidityModal({ ...liquidityModal, isOpen: false });
+                setAmount('');
+                // Refetch pools data
+                window.location.reload();
+              } catch (error) {
+                console.error('Liquidity operation failed:', error);
+              }
+            }}
+            disabled={!amount || provideLiquidityMutation.isLoading || removeLiquidityMutation.isLoading}
+          >
+            {provideLiquidityMutation.isLoading || removeLiquidityMutation.isLoading
+              ? 'Processing...'
+              : 'Confirm'
+            }
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 };
