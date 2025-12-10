@@ -22,7 +22,14 @@ module.exports = {
     qubic: {
       url: process.env.QUBIC_RPC_URL || "https://rpc.qubic.org",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 12345 // Replace with actual Qubic chain ID
+      chainId: 12345, // Qubic mainnet chain ID
+      gasPrice: 20000000000, // 20 gwei
+    },
+    qubicTestnet: {
+      url: process.env.QUBIC_TESTNET_RPC_URL || "https://testnet.rpc.qubic.org",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: 12346, // Qubic testnet chain ID
+      gasPrice: 20000000000,
     }
   },
   etherscan: {
