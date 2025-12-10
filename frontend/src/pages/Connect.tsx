@@ -1,20 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAccount, useSignMessage } from 'wagmi';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import WalletButton from '../components/WalletButton';
+import { useLogin, useNonce } from '../services/api';
 
 const Connect = () => {
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const navigate = useNavigate();
+  const { address, isConnected } = useAccount();
+  const { signMessageAsync } = useSignMessage();
+  const loginMutation = useLogin();
+  const { data: nonceData } = useNonce();
 
-  const handleConnect = async () => {
-    setIsConnecting(true);
-    // Simulate connection
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsConnecting(false);
-    navigate('/app');
+  const handleAuth = async () => {
+    if (!address || !nonceData?.nonce) return;
+
+    setIsAuthenticating(true);
+    try {
+      const message = `Sign this message to authenticate with Qubic OmniVault: ${nonceData.nonce}`;
+      const signature = await signMessageAsync({ message });
+
+      const result = await loginMutation.mutateAsync({
+        wallet_address: address,
+        signature,
+        nonce: nonceData.nonce,
+      });
+
+      // Store tokens
+      localStorage.setItem('authToken', result.jwt);
+      localStorage.setItem('refreshToken', result.refresh_token);
+
+      navigate('/app');
+    } catch (error) {
+      console.error('Authentication failed:', error);
+    } finally {
+      setIsAuthenticating(false);
+    }
   };
+
+  // Auto-authenticate when nonce is available
+  useEffect(() => {
+    if (isConnected && nonceData?.nonce && !isAuthenticating) {
+      handleAuth();
+    }
+  }, [isConnected, nonceData, isAuthenticating]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-accent-50 flex items-center justify-center px-4 py-8">
@@ -43,13 +74,25 @@ const Connect = () => {
             </div>
 
             <div className="space-y-4">
-              <WalletButton
-                onClick={handleConnect}
-                disabled={isConnecting}
-                className="w-full"
-              >
-                {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-              </WalletButton>
+              {isConnected ? (
+                <div className="text-center">
+                  <p className="text-sm text-neutral-600 mb-4">
+                    Wallet connected: {address?.slice(0, 6)}...{address?.slice(-4)}
+                  </p>
+                  {isAuthenticating ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500 mr-2"></div>
+                      Authenticating...
+                    </div>
+                  ) : (
+                    <p className="text-sm text-neutral-600">Authenticating...</p>
+                  )}
+                </div>
+              ) : (
+                <WalletButton className="w-full">
+                  Connect Wallet
+                </WalletButton>
+              )}
 
               <div className="text-center">
                 <p className="text-sm text-neutral-500 mb-4">Supported wallets:</p>
