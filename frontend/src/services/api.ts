@@ -1,6 +1,8 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
+import * as mockData from './mockData';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:3001';
+const USE_MOCK_DATA = process.env.REACT_APP_USE_MOCK_DATA === 'true' || process.env.NODE_ENV === 'development';
 
 const getAuthHeaders = (): Record<string, string> => {
   const token = localStorage.getItem('authToken');
@@ -15,6 +17,11 @@ export const useNonce = () => {
   return useQuery({
     queryKey: ['nonce'],
     queryFn: async () => {
+      if (USE_MOCK_DATA) {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return mockNonce;
+      }
       const response = await fetch(`${API_BASE}/auth/nonce`);
       if (!response.ok) throw new Error('Failed to fetch nonce');
       return response.json();
@@ -39,6 +46,11 @@ export const useRegister = () => {
 export const useLogin = () => {
   return useMutation({
     mutationFn: async (data: { wallet_address: string; signature: string; nonce: string }) => {
+      if (USE_MOCK_DATA) {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return mockData.mockLoginResponse;
+      }
       const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -69,6 +81,10 @@ export const useValuation = (jobId: string) => {
   return useQuery({
     queryKey: ['valuation', jobId],
     queryFn: async () => {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return { ...mockData.mockValuation, asset_id: jobId };
+      }
       const response = await fetch(`${API_BASE}/tokenize/valuation/${jobId}`, {
         headers: getAuthHeaders(),
       });
@@ -82,6 +98,14 @@ export const useValuation = (jobId: string) => {
 export const useMint = () => {
   return useMutation({
     mutationFn: async (data: { document_id: string; accepted_value_usd: number }) => {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        return {
+          success: true,
+          transaction_hash: `0x${Math.random().toString(16).substr(2, 64)}`,
+          asset_id: `asset-${Date.now()}`
+        };
+      }
       const response = await fetch(`${API_BASE}/tokenize/mint`, {
         method: 'POST',
         headers: {
@@ -101,6 +125,10 @@ export const usePortfolioSummary = () => {
   return useQuery({
     queryKey: ['portfolio'],
     queryFn: async () => {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        return mockData.mockPortfolio;
+      }
       const response = await fetch(`${API_BASE}/dashboard/portfolio`, {
         headers: getAuthHeaders(),
       });
@@ -114,6 +142,10 @@ export const usePositions = () => {
   return useQuery({
     queryKey: ['positions'],
     queryFn: async () => {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 600));
+        return mockData.mockPositions;
+      }
       const response = await fetch(`${API_BASE}/dashboard/positions`, {
         headers: getAuthHeaders(),
       });
@@ -208,6 +240,10 @@ export const usePools = () => {
   return useQuery({
     queryKey: ['pools'],
     queryFn: async () => {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return mockData.mockPools;
+      }
       const response = await fetch(`${API_BASE}/pools`);
       if (!response.ok) throw new Error('Failed to fetch pools');
       return response.json();
@@ -230,6 +266,14 @@ export const usePoolDetails = (poolId: string) => {
 export const useProvideLiquidity = () => {
   return useMutation({
     mutationFn: async ({ poolId, amount }: { poolId: string; amount: number }) => {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        return {
+          success: true,
+          transaction_hash: `0x${Math.random().toString(16).substr(2, 64)}`,
+          amount_provided: amount
+        };
+      }
       const response = await fetch(`${API_BASE}/pools/${poolId}/provide`, {
         method: 'POST',
         headers: {
@@ -247,6 +291,14 @@ export const useProvideLiquidity = () => {
 export const useRemoveLiquidity = () => {
   return useMutation({
     mutationFn: async ({ poolId, amount }: { poolId: string; amount: number }) => {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        return {
+          success: true,
+          transaction_hash: `0x${Math.random().toString(16).substr(2, 64)}`,
+          amount_removed: amount
+        };
+      }
       const response = await fetch(`${API_BASE}/pools/${poolId}/remove`, {
         method: 'POST',
         headers: {
@@ -266,6 +318,10 @@ export const useProposals = () => {
   return useQuery({
     queryKey: ['proposals'],
     queryFn: async () => {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 700));
+        return mockData.mockProposals;
+      }
       const response = await fetch(`${API_BASE}/governance/proposals`, {
         headers: getAuthHeaders(),
       });
@@ -291,6 +347,10 @@ export const useVotingPower = () => {
 export const useVote = () => {
   return useMutation({
     mutationFn: async ({ proposalId, vote }: { proposalId: string; vote: 'for' | 'against' }) => {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        return { success: true, proposalId, vote };
+      }
       const response = await fetch(`${API_BASE}/governance/proposals/${proposalId}/vote`, {
         method: 'POST',
         headers: {
@@ -308,6 +368,17 @@ export const useVote = () => {
 export const useCreateProposal = () => {
   return useMutation({
     mutationFn: async (data: { title: string; description: string; type: string }) => {
+      if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return {
+          id: `proposal-${Date.now()}`,
+          ...data,
+          status: 'active',
+          votes_for: 0,
+          votes_against: 0,
+          created_at: new Date().toISOString()
+        };
+      }
       const response = await fetch(`${API_BASE}/governance/proposals`, {
         method: 'POST',
         headers: {

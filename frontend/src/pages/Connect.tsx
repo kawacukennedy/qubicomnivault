@@ -24,19 +24,33 @@ const Connect = () => {
   }, [navigate]);
 
   const handleAuth = async () => {
-    if (!address || !nonceData?.nonce) return;
+    if (!address) return;
 
     setIsAuthenticating(true);
     setAuthError(null);
     try {
-      const message = `Sign this message to authenticate with Qubic OmniVault: ${nonceData.nonce}`;
-      const signature = await signMessageAsync({ message });
+      // Skip signature for mock data
+      const useMock = process.env.REACT_APP_USE_MOCK_DATA === 'true';
+      let result;
 
-      const result = await loginMutation.mutateAsync({
-        wallet_address: address,
-        signature,
-        nonce: nonceData.nonce,
-      });
+      if (useMock) {
+        // Mock authentication - just simulate success
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        result = {
+          jwt: 'mock-jwt-token',
+          refresh_token: 'mock-refresh-token'
+        };
+      } else {
+        if (!nonceData?.nonce) return;
+        const message = `Sign this message to authenticate with Qubic OmniVault: ${nonceData.nonce}`;
+        const signature = await signMessageAsync({ message });
+
+        result = await loginMutation.mutateAsync({
+          wallet_address: address,
+          signature,
+          nonce: nonceData.nonce,
+        });
+      }
 
       // Store tokens
       localStorage.setItem('authToken', result.jwt);
@@ -51,9 +65,10 @@ const Connect = () => {
     }
   };
 
-  // Auto-authenticate when nonce is available
+  // Auto-authenticate when connected
   useEffect(() => {
-    if (isConnected && nonceData?.nonce && !isAuthenticating && !authError && !nonceError) {
+    const useMock = process.env.REACT_APP_USE_MOCK_DATA === 'true';
+    if (isConnected && !isAuthenticating && !authError && (useMock || (nonceData?.nonce && !nonceError))) {
       handleAuth();
     }
   }, [isConnected, nonceData, isAuthenticating, authError, nonceError]);
