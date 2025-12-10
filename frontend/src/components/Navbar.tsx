@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
 import { Button } from './ui/Button';
 import WalletButton from './WalletButton';
 import { cn } from '../utils/cn';
@@ -25,7 +24,6 @@ const Navbar: React.FC<NavbarProps> = ({
   cta,
   className,
 }) => {
-  const { isConnected, address } = useAccount();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
