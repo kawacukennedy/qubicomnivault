@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -8,11 +8,13 @@ import { ActivityFeed } from '../components/ActivityFeed';
 import { Chart } from '../components/ui/Chart';
 import { SkeletonChart, Skeleton } from '../components/ui/Skeleton';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { usePortfolioSummary, usePositions } from '../services/api';
+import BorrowModal from '../components/BorrowModal';
 
 interface Portfolio {
-  totalValue: number;
-  change24h: number;
-  breakdown: { name: string; value: number }[];
+  total_value_usd: number;
+  change_24h_percentage: number;
+  breakdown: { name: string; value: number; usd_value: number }[];
 }
 
 interface Position {
@@ -21,71 +23,65 @@ interface Position {
   collateral_value: number;
   loan_amount: number;
   ltv: number;
+  status: string;
+  interest_rate: number;
+  created_at: string;
 }
 
 interface ActivityItem {
   id: string;
-  type: 'transaction' | 'alert' | 'update';
+  type: 'transaction' | 'alert' | 'update' | 'governance' | 'liquidity';
   title: string;
   description: string;
   timestamp: string;
   amount?: number;
+  metadata?: any;
 }
 
 const Dashboard = () => {
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [positions, setPositions] = useState<Position[]>([]);
-  const [activityItems, setActivityItems] = useState<ActivityItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [borrowModalOpen, setBorrowModalOpen] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<any>(null);
+
+  // Real API calls
+  const { data: portfolioData, isLoading: portfolioLoading, error: portfolioError, refetch: refetchPortfolio } = usePortfolioSummary();
+  const { data: positionsData, isLoading: positionsLoading, error: positionsError, refetch: refetchPositions } = usePositions();
 
   useWebSocket('ws://localhost:3001'); // Assume backend WS
 
-  useEffect(() => {
-    // Mock loading data
-    const loadData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setPortfolio({
-          totalValue: 12345.67,
-          change24h: 0.025,
-          breakdown: [
-            { name: 'oqAssets', value: 70 },
-            { name: 'Stablecoins', value: 20 },
-            { name: 'LP Tokens', value: 10 },
-          ],
-        });
-        setPositions([
-          { id: '1', asset: 'oqAsset: Invoice #1234', collateral_value: 1000, loan_amount: 700, ltv: 70 },
-        ]);
-        setActivityItems([
-          {
-            id: '1',
-            type: 'transaction',
-            title: 'Interest Accrued',
-            description: 'Interest accrued on position',
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            amount: 5.23,
-          },
-          {
-            id: '2',
-            type: 'alert',
-            title: 'Position Liquidated',
-            description: 'Position was liquidated due to high LTV',
-            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          },
-        ]);
-       } catch {
-         setError('Failed to load portfolio data');
-       } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
-  }, []);
+  // Transform API data to component format
+  const portfolio: Portfolio | null = portfolioData ? {
+    totalValue: portfolioData.total_value_usd,
+    change24h: portfolioData.change_24h_percentage,
+    breakdown: portfolioData.breakdown.map(item => ({
+      name: item.name,
+      value: item.value * 100, // Convert to percentage for chart
+    })),
+  } : null;
+
+  const positions: Position[] = positionsData || [];
+
+  // Mock activity data for now (will be replaced with real API)
+  const activityItems: ActivityItem[] = [
+    {
+      id: '1',
+      type: 'transaction',
+      title: 'Interest Accrued',
+      description: 'Interest accrued on position',
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      amount: 5.23,
+    },
+    {
+      id: '2',
+      type: 'alert',
+      title: 'Position Liquidated',
+      description: 'Position was liquidated due to high LTV',
+      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    },
+  ];
+
+  const isLoading = portfolioLoading || positionsLoading;
+  const error = portfolioError || positionsError;
 
   const sidebarItems = [
     { label: 'Overview', onClick: () => {} },
@@ -194,21 +190,31 @@ const Dashboard = () => {
                   accessor: 'ltv',
                   render: (value) => `${value}%`,
                 },
-                {
-                  id: 'actions',
-                  label: 'Actions',
-                  accessor: () => null,
-                  render: () => (
-                    <div className="space-x-2">
-                      <Button size="sm" variant="outline">
-                        Repay
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        Add Collateral
-                      </Button>
-                    </div>
-                  ),
-                },
+                     {
+                       id: 'actions',
+                       label: 'Actions',
+                       accessor: () => null,
+                       render: (item) => (
+                         <div className="space-x-2">
+                           <Button
+                             size="sm"
+                             variant="solid"
+                             onClick={() => {
+                               setSelectedPosition(item);
+                               setBorrowModalOpen(true);
+                             }}
+                           >
+                             Borrow
+                           </Button>
+                           <Button size="sm" variant="outline">
+                             Repay
+                           </Button>
+                           <Button size="sm" variant="outline">
+                             Add Collateral
+                           </Button>
+                         </div>
+                       ),
+                     },
               ]}
               onRowClick={(item) => console.log('Row clicked', item)}
             />
@@ -224,6 +230,19 @@ const Dashboard = () => {
           />
         </div>
       </div>
+
+      {selectedPosition && (
+        <BorrowModal
+          isOpen={borrowModalOpen}
+          onClose={() => setBorrowModalOpen(false)}
+          oqAssetId={selectedPosition.asset_id || selectedPosition.id} // Adjust based on actual data structure
+          maxBorrowAmount={selectedPosition.collateral_value * 0.7} // 70% LTV max
+          onSuccess={() => {
+            refetchPositions();
+            refetchPortfolio();
+          }}
+        />
+      )}
     </motion.div>
   );
 };
