@@ -26,8 +26,8 @@ const Pools = () => {
   })) : [];
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-12">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-neutral-50 py-8 sm:py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold mb-8">Liquidity Pools</h1>
 
         {/* Overview Cards */}
@@ -92,36 +92,38 @@ const Pools = () => {
                        id: 'actions',
                        label: 'Actions',
                        accessor: () => null,
-                       render: (item) => (
-                         <div className="space-x-2">
-                           <Button
-                             size="sm"
-                             variant="outline"
-                             onClick={() => setLiquidityModal({
-                               isOpen: true,
-                               type: 'provide',
-                               poolId: item.id,
-                               poolName: item.name,
-                             })}
-                           >
-                             {item.myLiquidity > 0 ? 'Add' : 'Provide'}
-                           </Button>
-                           {item.myLiquidity > 0 && (
-                             <Button
-                               size="sm"
-                               variant="outline"
-                               onClick={() => setLiquidityModal({
-                                 isOpen: true,
-                                 type: 'remove',
-                                 poolId: item.id,
-                                 poolName: item.name,
-                               })}
-                             >
-                               Remove
-                             </Button>
-                           )}
-                         </div>
-                       ),
+                        render: (item) => (
+                          <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setLiquidityModal({
+                                isOpen: true,
+                                type: 'provide',
+                                poolId: item.id,
+                                poolName: item.name,
+                              })}
+                              className="w-full sm:w-auto"
+                            >
+                              {item.myLiquidity > 0 ? 'Add' : 'Provide'}
+                            </Button>
+                            {item.myLiquidity > 0 && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setLiquidityModal({
+                                  isOpen: true,
+                                  type: 'remove',
+                                  poolId: item.id,
+                                  poolName: item.name,
+                                })}
+                                className="w-full sm:w-auto"
+                              >
+                                Remove
+                              </Button>
+                            )}
+                          </div>
+                        ),
                      },
                   ]}
                 />

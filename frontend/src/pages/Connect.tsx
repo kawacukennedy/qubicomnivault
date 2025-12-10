@@ -74,7 +74,7 @@ const Connect = () => {
   }, [isConnected, nonceData, isAuthenticating, authError, nonceError]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-accent-50 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-accent-50 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <div className="max-w-md w-full mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-neutral-900 mb-4">
@@ -144,23 +144,23 @@ const Connect = () => {
                  <WalletButton className="w-full" />
                )}
 
-              <div className="text-center">
-                <p className="text-sm text-neutral-500 mb-4">Supported wallets:</p>
-                <div className="flex justify-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 bg-blue-500 rounded"></div>
-                    <span className="text-xs">MetaMask</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 bg-orange-500 rounded"></div>
-                    <span className="text-xs">WalletConnect</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 bg-purple-500 rounded"></div>
-                    <span className="text-xs">Coinbase</span>
-                  </div>
-                </div>
-              </div>
+               <div className="text-center">
+                 <p className="text-sm text-neutral-500 mb-4">Supported wallets:</p>
+                 <div className="grid grid-cols-3 gap-2 sm:flex sm:justify-center sm:space-x-4">
+                   <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                     <div className="w-6 h-6 bg-blue-500 rounded"></div>
+                     <span className="text-xs text-center sm:text-left">MetaMask</span>
+                   </div>
+                   <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                     <div className="w-6 h-6 bg-orange-500 rounded"></div>
+                     <span className="text-xs text-center sm:text-left">WalletConnect</span>
+                   </div>
+                   <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                     <div className="w-6 h-6 bg-purple-500 rounded"></div>
+                     <span className="text-xs text-center sm:text-left">Coinbase</span>
+                   </div>
+                 </div>
+               </div>
             </div>
 
             <div className="border-t border-neutral-200 pt-6">

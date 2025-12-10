@@ -39,7 +39,12 @@ const Governance = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
           <h1 className="text-2xl sm:text-3xl font-bold">Governance</h1>
-          <Button className="w-full sm:w-auto">Create Proposal</Button>
+          <Button
+            className="w-full sm:w-auto"
+            onClick={() => setCreateProposalModal(true)}
+          >
+            Create Proposal
+          </Button>
         </div>
 
         {/* Overview Cards */}
@@ -85,28 +90,28 @@ const Governance = () => {
                         </span>
                       </div>
                     </div>
-                    {proposal.status === 'active' && (
-                      <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
-                        <Button
-                          size="sm"
-                          variant={proposal.my_vote === 'for' ? 'solid' : 'outline'}
-                          onClick={() => handleVote(proposal.id, 'for')}
-                          className="w-full sm:w-auto"
-                          disabled={voteMutation.isPending}
-                        >
-                          For ({(proposal.votes_for || 0).toLocaleString()})
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={proposal.my_vote === 'against' ? 'solid' : 'outline'}
-                          onClick={() => handleVote(proposal.id, 'against')}
-                          className="w-full sm:w-auto"
-                          disabled={voteMutation.isPending}
-                        >
-                          Against ({(proposal.votes_against || 0).toLocaleString()})
-                        </Button>
-                      </div>
-                    )}
+                     {proposal.status === 'active' && (
+                       <div className="flex flex-col sm:flex-row gap-2">
+                         <Button
+                           size="sm"
+                           variant={proposal.my_vote === 'for' ? 'solid' : 'outline'}
+                           onClick={() => handleVote(proposal.id, 'for')}
+                           className="w-full sm:w-auto"
+                           disabled={voteMutation.isPending}
+                         >
+                           For ({(proposal.votes_for || 0).toLocaleString()})
+                         </Button>
+                         <Button
+                           size="sm"
+                           variant={proposal.my_vote === 'against' ? 'solid' : 'outline'}
+                           onClick={() => handleVote(proposal.id, 'against')}
+                           className="w-full sm:w-auto"
+                           disabled={voteMutation.isPending}
+                         >
+                           Against ({(proposal.votes_against || 0).toLocaleString()})
+                         </Button>
+                       </div>
+                     )}
                   </div>
 
                   {proposal.status === 'active' && (

@@ -124,36 +124,55 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu overlay */}
       {isMobileMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white shadow-large">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className="text-neutral-700 hover:text-primary-600 block px-3 py-2 rounded-medium text-base font-medium"
+        <div className="md:hidden fixed inset-0 z-50 bg-white">
+          <div className="flex flex-col h-full">
+            {/* Mobile menu header */}
+            <div className="flex items-center justify-between p-4 border-b border-neutral-200">
+              <div className="font-bold text-xl text-neutral-900">{logo}</div>
+              <button
                 onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 rounded-medium hover:bg-neutral-100"
               >
-                {item.label}
-              </a>
-            ))}
-            <div className="px-3 py-2">
-              {cta.label === 'Connect Wallet' ? (
-                <WalletButton className="w-full" />
-              ) : (
-                <Button
-                  onClick={() => {
-                    cta.action();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  variant="solid"
-                  size="sm"
-                  className="w-full"
-                >
-                  {cta.label}
-                </Button>
-              )}
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Mobile menu content */}
+            <div className="flex-1 px-4 py-6">
+              <nav className="space-y-4">
+                {navItems.map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    className="block px-4 py-3 text-neutral-700 hover:text-primary-600 hover:bg-neutral-50 rounded-medium text-lg font-medium transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+
+              <div className="mt-8 pt-8 border-t border-neutral-200">
+                {cta.label === 'Connect Wallet' ? (
+                  <WalletButton className="w-full" />
+                ) : (
+                  <Button
+                    onClick={() => {
+                      cta.action();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    variant="solid"
+                    size="lg"
+                    className="w-full"
+                  >
+                    {cta.label}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
