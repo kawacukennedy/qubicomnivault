@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAccount, useSignMessage } from 'wagmi';
-import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import WalletButton from '../components/WalletButton';
 import { useLogin, useNonce } from '../services/api';
 
 const Connect = () => {
@@ -12,7 +12,6 @@ const Connect = () => {
   const navigate = useNavigate();
   const { address, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
-  const { open } = useWeb3Modal();
   const loginMutation = useLogin();
   const { data: nonceData, isLoading: nonceLoading, error: nonceError } = useNonce();
 
@@ -142,9 +141,7 @@ const Connect = () => {
                   )}
                 </div>
                ) : (
-                 <Button onClick={() => open()} className="w-full">
-                   Connect Wallet
-                 </Button>
+                 <WalletButton className="w-full" />
                )}
 
               <div className="text-center">

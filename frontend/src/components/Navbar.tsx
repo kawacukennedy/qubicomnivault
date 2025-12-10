@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { Button } from './ui/Button';
+import WalletButton from './WalletButton';
 import { cn } from '../utils/cn';
 
 interface NavItem {
@@ -26,7 +26,6 @@ const Navbar: React.FC<NavbarProps> = ({
   className,
 }) => {
   const { isConnected, address } = useAccount();
-  const { open } = useWeb3Modal();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -74,20 +73,7 @@ const Navbar: React.FC<NavbarProps> = ({
           {/* CTA Button */}
           <div className="hidden md:block">
             {cta.label === 'Connect Wallet' ? (
-              isConnected ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-neutral-700">
-                    {address?.slice(0, 6)}...{address?.slice(-4)}
-                  </span>
-                  <Button onClick={() => open()} variant="outline" size="sm">
-                    Switch
-                  </Button>
-                </div>
-              ) : (
-                <Button onClick={() => open()} variant="solid" size="sm">
-                  Connect Wallet
-                </Button>
-              )
+              <WalletButton />
             ) : (
               <Button onClick={cta.action} variant="solid" size="sm">
                 {cta.label}
@@ -156,20 +142,7 @@ const Navbar: React.FC<NavbarProps> = ({
             ))}
             <div className="px-3 py-2">
               {cta.label === 'Connect Wallet' ? (
-                isConnected ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-neutral-700">
-                      {address?.slice(0, 6)}...{address?.slice(-4)}
-                    </span>
-                    <Button onClick={() => open()} variant="outline" size="sm">
-                      Switch
-                    </Button>
-                  </div>
-                ) : (
-                  <Button onClick={() => open()} variant="solid" size="sm" className="w-full">
-                    Connect Wallet
-                  </Button>
-                )
+                <WalletButton className="w-full" />
               ) : (
                 <Button
                   onClick={() => {

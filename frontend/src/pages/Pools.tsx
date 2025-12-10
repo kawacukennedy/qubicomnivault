@@ -22,7 +22,7 @@ const Pools = () => {
 
   const poolChartData = pools ? pools.map((pool: any) => ({
     name: pool.name,
-    value: pool.tvl,
+    value: pool.tvl || 0,
   })) : [];
 
   return (
@@ -64,30 +64,30 @@ const Pools = () => {
                   data={pools}
                   columns={[
                     { id: 'name', label: 'Pool', accessor: 'name' },
-                    {
-                      id: 'tvl',
-                      label: 'TVL',
-                      accessor: 'tvl',
-                      render: (value) => `$${value.toLocaleString()}`,
-                    },
-                    {
-                      id: 'apr',
-                      label: 'APR',
-                      accessor: 'apr',
-                      render: (value) => `${value}%`,
-                    },
-                    {
-                      id: 'volume24h',
-                      label: '24h Volume',
-                      accessor: 'volume24h',
-                      render: (value) => `$${value.toLocaleString()}`,
-                    },
-                    {
-                      id: 'myLiquidity',
-                      label: 'My Liquidity',
-                      accessor: 'myLiquidity',
-                      render: (value) => value > 0 ? `$${value.toLocaleString()}` : '-',
-                    },
+                     {
+                       id: 'tvl',
+                       label: 'TVL',
+                       accessor: 'tvl',
+                       render: (value) => `$${value?.toLocaleString() || '0'}`,
+                     },
+                     {
+                       id: 'apr',
+                       label: 'APR',
+                       accessor: 'apr',
+                       render: (value) => `${value?.toFixed(2) || '0'}%`,
+                     },
+                     {
+                       id: 'volume24h',
+                       label: '24h Volume',
+                       accessor: 'volume24h',
+                       render: (value) => `$${value?.toLocaleString() || '0'}`,
+                     },
+                     {
+                       id: 'myLiquidity',
+                       label: 'My Liquidity',
+                       accessor: 'myLiquidity',
+                       render: (value) => value > 0 ? `$${value.toLocaleString()}` : '-',
+                     },
                      {
                        id: 'actions',
                        label: 'Actions',

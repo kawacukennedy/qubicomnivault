@@ -166,12 +166,12 @@ const Dashboard = () => {
                 <div className="text-success-600 mb-4">
                   +{(portfolio?.change24h || 0) * 100}% (24h)
                 </div>
-                <Chart
-                  type="bar"
-                  data={portfolio?.breakdown || []}
-                  dataKey="value"
-                  height={200}
-                />
+                 <Chart
+                   type="bar"
+                   data={(portfolio?.breakdown || []).map(item => ({ ...item, value: item.value || 0 }))}
+                   dataKey="value"
+                   height={200}
+                 />
               </>
             )}
             </Card>
@@ -184,18 +184,18 @@ const Dashboard = () => {
               data={positions}
               columns={[
                 { id: 'asset', label: 'Asset', accessor: 'asset' },
-                {
-                  id: 'collateral_value',
-                  label: 'Collateral Value',
-                  accessor: 'collateral_value',
-                  render: (value) => `$${value.toLocaleString()}`,
-                },
-                {
-                  id: 'loan_amount',
-                  label: 'Loan',
-                  accessor: 'loan_amount',
-                  render: (value) => `$${value.toLocaleString()}`,
-                },
+                 {
+                   id: 'collateral_value',
+                   label: 'Collateral Value',
+                   accessor: 'collateral_value',
+                   render: (value) => `$${value?.toLocaleString() || '0'}`,
+                 },
+                 {
+                   id: 'loan_amount',
+                   label: 'Loan',
+                   accessor: 'loan_amount',
+                   render: (value) => `$${value?.toLocaleString() || '0'}`,
+                 },
                 {
                   id: 'ltv',
                   label: 'LTV',
