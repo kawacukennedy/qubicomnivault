@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Table } from '../components/ui/Table';
@@ -326,23 +327,22 @@ const Dashboard = () => {
                   />
                 </div>
               )}
-            </Card>
-          </motion.div>
-        </div>
+             </Card>
+           </motion.div>
 
-        {selectedPosition && (
-          <BorrowModal
-            isOpen={borrowModalOpen}
-            onClose={() => setBorrowModalOpen(false)}
-            oqAssetId={selectedPosition.asset_id || selectedPosition.id} // Adjust based on actual data structure
-            maxBorrowAmount={selectedPosition.collateral_value * 0.7} // 70% LTV max
-            onSuccess={() => {
-              refetchPositions();
-              refetchPortfolio();
-            }}
-          />
-        )}
-    </div>
+           {selectedPosition && (
+             <BorrowModal
+               isOpen={borrowModalOpen}
+               onClose={() => setBorrowModalOpen(false)}
+               oqAssetId={selectedPosition.asset_id || selectedPosition.id} // Adjust based on actual data structure
+               maxBorrowAmount={selectedPosition.collateral_value * 0.7} // 70% LTV max
+               onSuccess={() => {
+                 refetchPositions();
+                 refetchPortfolio();
+               }}
+             />
+           )}
+         </div>
   );
 };
 
