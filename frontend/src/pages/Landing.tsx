@@ -1,4 +1,5 @@
 
+import { motion } from 'framer-motion';
 import { Navbar } from '../components/Navbar';
 import { Hero } from '../components/Hero';
 import { Footer } from '../components/Footer';
@@ -48,35 +49,36 @@ const Landing = () => {
                Transform traditional assets into digital tokens and unlock new financial possibilities.
              </p>
            </div>
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-             <div className="text-center">
-               <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                 <span className="text-2xl font-bold text-primary-600">1</span>
-               </div>
-               <h3 className="text-xl font-semibold mb-4">Upload & Verify</h3>
-               <p className="text-neutral-600">
-                 Upload your invoices or assets. Our AI-powered verification system ensures authenticity and calculates fair valuations.
-               </p>
-             </div>
-             <div className="text-center">
-               <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                 <span className="text-2xl font-bold text-primary-600">2</span>
-               </div>
-               <h3 className="text-xl font-semibold mb-4">Mint oqAssets</h3>
-               <p className="text-neutral-600">
-                 Mint tokenized assets (oqAssets) backed by your collateral. These digital tokens represent real-world value on Qubic.
-               </p>
-             </div>
-             <div className="text-center">
-               <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                 <span className="text-2xl font-bold text-primary-600">3</span>
-               </div>
-               <h3 className="text-xl font-semibold mb-4">Borrow & Earn</h3>
-               <p className="text-neutral-600">
-                 Use oqAssets as collateral to borrow stablecoins or provide liquidity in pools to earn yields and participate in DeFi.
-               </p>
-             </div>
-           </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+              {[1, 2, 3].map((step, index) => (
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.2 }}
+                  className="text-center"
+                >
+                  <motion.div
+                    className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6"
+                    whileHover={{ scale: 1.1, backgroundColor: '#229FFF' }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                  >
+                    <span className="text-2xl font-bold text-primary-600">{step}</span>
+                  </motion.div>
+                  <h3 className="text-xl font-semibold mb-4">
+                    {step === 1 ? 'Upload & Verify' : step === 2 ? 'Mint oqAssets' : 'Borrow & Earn'}
+                  </h3>
+                  <p className="text-neutral-600">
+                    {step === 1
+                      ? 'Upload your invoices or assets. Our AI-powered verification system ensures authenticity and calculates fair valuations.'
+                      : step === 2
+                      ? 'Mint tokenized assets (oqAssets) backed by your collateral. These digital tokens represent real-world value on Qubic.'
+                      : 'Use oqAssets as collateral to borrow stablecoins or provide liquidity in pools to earn yields and participate in DeFi.'
+                    }
+                  </p>
+                </motion.div>
+              ))}
+            </div>
          </div>
        </section>
 
@@ -90,12 +92,21 @@ const Landing = () => {
              </p>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-             {features.map((feature, index) => (
-               <Card key={index} className="p-6 text-center">
-                 <h3 className="text-xl font-semibold mb-4">{feature.title}</h3>
-                 <p className="text-neutral-600">{feature.desc}</p>
-               </Card>
-             ))}
+              {features.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ y: -5 }}
+                  className="cursor-pointer"
+                >
+                  <Card className="p-6 text-center hover:shadow-medium transition-shadow duration-300">
+                    <h3 className="text-xl font-semibold mb-4">{feature.title}</h3>
+                    <p className="text-neutral-600">{feature.desc}</p>
+                  </Card>
+                </motion.div>
+              ))}
            </div>
          </div>
        </section>

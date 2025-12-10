@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Avatar } from './ui/Avatar';
 import { Button } from './ui/Button';
 import { cn } from '../utils/cn';
 
 interface SidebarItem {
   label: string;
-  icon?: string;
+  icon?: React.ReactNode;
   href?: string;
   onClick?: () => void;
 }
@@ -34,15 +35,19 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [activeItem, setActiveItem] = useState(0);
 
   return (
-    <div
+    <motion.div
       className={cn(
-        'bg-neutral-50 border-r border-neutral-200 transition-all duration-300',
-        {
-          'w-16': collapsed,
-          'w-64': !collapsed,
-        },
+        'bg-neutral-50 border-r border-neutral-200 overflow-hidden',
         className
       )}
+      animate={{
+        width: collapsed ? 64 : 256,
+      }}
+      transition={{
+        type: 'spring',
+        stiffness: 300,
+        damping: 30,
+      }}
     >
       {/* Header */}
       <div className="p-4 border-b border-neutral-200">
@@ -108,33 +113,20 @@ const Sidebar: React.FC<SidebarProps> = ({
                   item.onClick?.();
                 }}
                 className={cn(
-                  'w-full flex items-center px-3 py-2 rounded-medium text-left transition-colors',
+                  'w-full flex items-center px-3 py-3 rounded-medium text-left transition-all duration-200 group',
                   {
-                    'bg-primary-100 text-primary-700': activeItem === index,
-                    'text-neutral-700 hover:bg-neutral-100': activeItem !== index,
+                    'bg-primary-100 text-primary-700 shadow-sm': activeItem === index,
+                    'text-neutral-700 hover:bg-neutral-50 hover:shadow-sm': activeItem !== index,
                     'justify-center': collapsed,
                   }
                 )}
               >
                 {item.icon && (
-                  <span className="mr-3 w-5 h-5 flex-shrink-0">
-                    {/* Placeholder for icon */}
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                      />
-                    </svg>
+                  <span className={cn("flex-shrink-0", collapsed ? "w-6 h-6" : "w-5 h-5 mr-3")}>
+                    {item.icon}
                   </span>
                 )}
-                {!collapsed && <span className="text-sm">{item.label}</span>}
+                {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
               </button>
             </li>
           ))}
@@ -159,7 +151,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
