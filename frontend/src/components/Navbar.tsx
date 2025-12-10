@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import { open } from '@web3modal/wagmi/react';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { Button } from './ui/Button';
 import { cn } from '../utils/cn';
 
@@ -26,6 +26,7 @@ const Navbar: React.FC<NavbarProps> = ({
   className,
 }) => {
   const { isConnected, address } = useAccount();
+  const { open } = useWeb3Modal();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
