@@ -316,13 +316,16 @@ const Dashboard = () => {
                         {(portfolio?.change24h || 0) >= 0 ? '+' : ''}{(portfolio?.change24h || 0) * 100}% (24h)
                       </div>
                     </div>
-                    <div className="flex-1 lg:ml-8">
-                      <Chart
-                        type="bar"
-                        data={(portfolio?.breakdown || []).map(item => ({ ...item, value: item.value || 0 }))}
-                        dataKey="value"
-                        height={120}
-                      />
+                    <div className="flex-1 lg:ml-8 min-w-0">
+                      <div className="w-full h-32">
+                        <Chart
+                          type="bar"
+                          data={(portfolio?.breakdown || []).map(item => ({ ...item, value: item.value || 0 }))}
+                          dataKey="value"
+                          height={120}
+                          width="100%"
+                        />
+                      </div>
                     </div>
                   </div>
 

@@ -23,6 +23,7 @@ interface ChartProps {
   dataKey: string;
   xAxisKey?: string;
   height?: number;
+  width?: string | number;
   className?: string;
 }
 
@@ -32,6 +33,7 @@ const Chart: React.FC<ChartProps> = ({
   dataKey,
   xAxisKey = 'name',
   height = 300,
+  width = "100%",
   className,
 }) => {
   const commonProps = {
@@ -148,7 +150,7 @@ const Chart: React.FC<ChartProps> = ({
   };
 
   return (
-    <div className={className} style={{ height }}>
+    <div className={className} style={{ height, width: typeof width === 'number' ? `${width}px` : width }}>
       <ResponsiveContainer width="100%" height="100%">
         {renderChart()}
       </ResponsiveContainer>

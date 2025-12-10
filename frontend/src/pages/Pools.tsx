@@ -82,49 +82,53 @@ const Pools = () => {
                        accessor: 'volume24h',
                        render: (value) => `$${value?.toLocaleString() || '0'}`,
                      },
-                     {
-                       id: 'myLiquidity',
-                       label: 'My Liquidity',
-                       accessor: 'myLiquidity',
-                       render: (value) => value > 0 ? `$${value.toLocaleString()}` : '-',
-                     },
-                     {
-                       id: 'actions',
-                       label: 'Actions',
-                       accessor: () => null,
-                        render: (item) => (
-                          <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setLiquidityModal({
-                                isOpen: true,
-                                type: 'provide',
-                                poolId: item.id,
-                                poolName: item.name,
-                              })}
-                              className="w-full sm:w-auto"
-                            >
-                              {item.myLiquidity > 0 ? 'Add' : 'Provide'}
-                            </Button>
-                            {item.myLiquidity > 0 && (
+                      {
+                        id: 'myLiquidity',
+                        label: 'My Liquidity',
+                        accessor: 'myLiquidity',
+                        render: (value) => (value && value > 0) ? `$${value.toLocaleString()}` : '-',
+                      },
+                      {
+                        id: 'actions',
+                        label: 'Actions',
+                        accessor: () => null,
+                         render: (item) => {
+                          if (!item) return null;
+                          const myLiquidity = item.myLiquidity || 0;
+                          return (
+                            <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => setLiquidityModal({
                                   isOpen: true,
-                                  type: 'remove',
+                                  type: 'provide',
                                   poolId: item.id,
                                   poolName: item.name,
                                 })}
                                 className="w-full sm:w-auto"
                               >
-                                Remove
+                                {myLiquidity > 0 ? 'Add' : 'Provide'}
                               </Button>
-                            )}
-                          </div>
-                        ),
-                     },
+                              {myLiquidity > 0 && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setLiquidityModal({
+                                    isOpen: true,
+                                    type: 'remove',
+                                    poolId: item.id,
+                                    poolName: item.name,
+                                  })}
+                                  className="w-full sm:w-auto"
+                                >
+                                  Remove
+                                </Button>
+                              )}
+                            </div>
+                          );
+                        },
+                      },
                   ]}
                 />
               )}
