@@ -14,6 +14,14 @@ const Connect = () => {
   const loginMutation = useLogin();
   const { data: nonceData } = useNonce();
 
+  // Check if already authenticated
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      navigate('/app');
+    }
+  }, [navigate]);
+
   const handleAuth = async () => {
     if (!address || !nonceData?.nonce) return;
 
