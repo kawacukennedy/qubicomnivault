@@ -9,6 +9,7 @@ import Pools from './pages/Pools';
 import Governance from './pages/Governance';
 import ToastContainer from './components/ToastContainer';
 import ProtectedRoute from './components/ProtectedRoute';
+import { AppLayout } from './components/AppLayout';
 
 function App() {
   return (
@@ -16,12 +17,12 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/connect" element={<Connect />} />
-        <Route path="/app" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/app/tokenize" element={<ProtectedRoute><Tokenize /></ProtectedRoute>} />
-        <Route path="/app/positions/:id" element={<ProtectedRoute><PositionDetail /></ProtectedRoute>} />
-        <Route path="/app/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="/app/pools" element={<ProtectedRoute><Pools /></ProtectedRoute>} />
-        <Route path="/app/governance" element={<ProtectedRoute><Governance /></ProtectedRoute>} />
+        <Route path="/app" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+        <Route path="/app/tokenize" element={<ProtectedRoute><AppLayout><Tokenize /></AppLayout></ProtectedRoute>} />
+        <Route path="/app/positions/:id" element={<ProtectedRoute><AppLayout><PositionDetail /></AppLayout></ProtectedRoute>} />
+        <Route path="/app/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
+        <Route path="/app/pools" element={<ProtectedRoute><AppLayout><Pools /></AppLayout></ProtectedRoute>} />
+        <Route path="/app/governance" element={<ProtectedRoute><AppLayout><Governance /></AppLayout></ProtectedRoute>} />
       </Routes>
       <ToastContainer />
     </Router>
