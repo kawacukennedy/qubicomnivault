@@ -8,11 +8,12 @@ import { useLogin, useNonce } from '../services/api';
 
 const Connect = () => {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { address, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const loginMutation = useLogin();
-  const { data: nonceData } = useNonce();
+  const { data: nonceData, isLoading: nonceLoading, error: nonceError } = useNonce();
 
   // Check if already authenticated
   useEffect(() => {
@@ -26,6 +27,7 @@ const Connect = () => {
     if (!address || !nonceData?.nonce) return;
 
     setIsAuthenticating(true);
+    setAuthError(null);
     try {
       const message = `Sign this message to authenticate with Qubic OmniVault: ${nonceData.nonce}`;
       const signature = await signMessageAsync({ message });
@@ -43,6 +45,7 @@ const Connect = () => {
       navigate('/app');
     } catch (error) {
       console.error('Authentication failed:', error);
+      setAuthError(error instanceof Error ? error.message : 'Authentication failed. Please try again.');
     } finally {
       setIsAuthenticating(false);
     }
@@ -50,10 +53,10 @@ const Connect = () => {
 
   // Auto-authenticate when nonce is available
   useEffect(() => {
-    if (isConnected && nonceData?.nonce && !isAuthenticating) {
+    if (isConnected && nonceData?.nonce && !isAuthenticating && !authError && !nonceError) {
       handleAuth();
     }
-  }, [isConnected, nonceData, isAuthenticating]);
+  }, [isConnected, nonceData, isAuthenticating, authError, nonceError]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-accent-50 flex items-center justify-center px-4 py-8">
@@ -87,13 +90,34 @@ const Connect = () => {
                   <p className="text-sm text-neutral-600 mb-4">
                     Wallet connected: {address?.slice(0, 6)}...{address?.slice(-4)}
                   </p>
-                  {isAuthenticating ? (
+                  {nonceLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500 mr-2"></div>
+                      Loading...
+                    </div>
+                  ) : nonceError ? (
+                    <div className="text-center">
+                      <p className="text-sm text-red-600 mb-2">Failed to load authentication data</p>
+                      <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                        Retry
+                      </Button>
+                    </div>
+                  ) : isAuthenticating ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500 mr-2"></div>
                       Authenticating...
                     </div>
+                  ) : authError ? (
+                    <div className="text-center">
+                      <p className="text-sm text-red-600 mb-2">{authError}</p>
+                      <Button variant="outline" size="sm" onClick={handleAuth}>
+                        Try Again
+                      </Button>
+                    </div>
                   ) : (
-                    <p className="text-sm text-neutral-600">Authenticating...</p>
+                    <Button onClick={handleAuth} className="w-full">
+                      Authenticate
+                    </Button>
                   )}
                 </div>
               ) : (
