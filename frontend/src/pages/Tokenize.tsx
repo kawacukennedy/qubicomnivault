@@ -21,6 +21,7 @@ const tokenizeSchema = z.object({
   title: z.string().min(1, 'Title is required').max(120, 'Title too long'),
   amount: z.number().min(1, 'Amount must be positive'),
   dueDate: z.string().min(1, 'Due date is required'),
+  document: z.any().refine((file) => file?.length > 0, 'Document is required'),
 });
 
 type TokenizeForm = z.infer<typeof tokenizeSchema>;
@@ -69,7 +70,7 @@ const Tokenize = () => {
     }
   };
 
-  const onSubmit = async (data: TokenizeForm) => {
+  const onSubmit = async (data: TokenizeForm & { document: FileList }) => {
     if (currentStep === 0) {
       // Upload documents
       const formDataToSend = new FormData();
@@ -77,9 +78,10 @@ const Tokenize = () => {
       formDataToSend.append('amount', data.amount.toString());
       formDataToSend.append('due_date', data.dueDate);
 
-      // Add file (mock for now - in real implementation, get from file input)
-      const mockFile = new File(['mock content'], 'invoice.pdf', { type: 'application/pdf' });
-      formDataToSend.append('documents', mockFile);
+      // Add file
+      if (data.document && data.document[0]) {
+        formDataToSend.append('documents', data.document[0]);
+      }
 
       try {
         const result = await tokenizeMutation.mutateAsync(formDataToSend);
@@ -175,12 +177,22 @@ const Tokenize = () => {
                       </p>
                     )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Upload Invoice PDF
-                    </label>
-                    <Input type="file" />
-                  </div>
+                   <div>
+                     <label className="block text-sm font-medium mb-2">
+                       Upload Invoice PDF
+                     </label>
+                     <Input
+                       type="file"
+                       accept=".pdf"
+                       {...register('document', { required: 'Document is required' })}
+                       variant={errors.document ? 'error' : 'default'}
+                     />
+                     {errors.document && (
+                       <p className="text-error-500 text-sm mt-1">
+                         {errors.document.message}
+                       </p>
+                     )}
+                   </div>
                 </div>
               </div>
             )}

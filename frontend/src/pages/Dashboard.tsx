@@ -233,14 +233,49 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Activity Feed */}
-        <div className="lg:col-span-3 order-3">
-          <ActivityFeed
-            items={activityItems}
-            filter={['all']}
-            className="sticky top-6"
-          />
-        </div>
+         {/* Activity Feed & Quick Actions */}
+         <div className="lg:col-span-3 order-3 space-y-6">
+           <ActivityFeed
+             items={activityItems}
+             filter={['all']}
+             className="sticky top-6"
+           />
+
+           {/* Quick Actions */}
+           <Card className="p-6">
+             <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+               <Button
+                 variant="solid"
+                 className="w-full"
+                 onClick={() => navigate('/app/tokenize')}
+               >
+                 Tokenize Asset
+               </Button>
+               <Button
+                 variant="outline"
+                 className="w-full"
+                 onClick={() => navigate('/app/pools')}
+               >
+                 Provide Liquidity
+               </Button>
+               <Button
+                 variant="outline"
+                 className="w-full"
+                 onClick={() => navigate('/app/governance')}
+               >
+                 Vote in Governance
+               </Button>
+               <Button
+                 variant="outline"
+                 className="w-full"
+                 onClick={() => navigate('/app/settings')}
+               >
+                 Manage Settings
+               </Button>
+             </div>
+           </Card>
+         </div>
       </div>
 
       {selectedPosition && (
