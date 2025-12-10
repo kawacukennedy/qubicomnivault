@@ -105,7 +105,7 @@
 "Headless UI for accessible primitives (menus, dialogs)",
 "React Hook Form + Zod for form validation"
 ],
-"wallet_integration": "Web3Modal + wagmi + @qubic/web3-sdk (or equivalent Qubic SDK), with connectors for MetaMask and WalletConnect",
+"wallet_integration": "Web3Modal + wagmi with standard connectors for MetaMask and WalletConnect",
 "testing": "Vitest (unit), Playwright (e2e)"
 },
 "backend": {

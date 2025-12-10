@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ethers } from 'ethers';
-import { QubicProvider, QubicWallet } from '@qubic/web3-sdk';
 
 // Import contract ABIs (would be generated from compilation)
 const oqAssetABI = require('./contracts/oqAsset.json');
@@ -10,11 +9,16 @@ const liquidityPoolABI = require('./contracts/LiquidityPool.json');
 const assetOracleABI = require('./contracts/AssetOracle.json');
 const governanceABI = require('./contracts/Governance.json');
 
+// Minimal ERC20 ABI for approve function
+const erc20ABI = [
+  'function approve(address spender, uint256 amount) external returns (bool)',
+];
+
 @Injectable()
 export class BlockchainService {
   private readonly logger = new Logger(BlockchainService.name);
-  private qubicProvider: QubicProvider;
-  private qubicWallet: QubicWallet;
+  private provider: ethers.JsonRpcProvider;
+  private wallet: ethers.Wallet;
 
   // Contract instances
   private oqAssetContract: ethers.Contract | null = null;
@@ -32,17 +36,13 @@ export class BlockchainService {
     try {
       const rpcUrl = this.configService.get<string>('QUBIC_RPC_URL', 'https://rpc.qubic.org');
       const privateKey = this.configService.get<string>('PRIVATE_KEY');
-      const chainId = this.configService.get<number>('QUBIC_CHAIN_ID', 12345);
 
-      // Initialize Qubic provider
-      this.qubicProvider = new QubicProvider({
-        rpcUrl,
-        chainId,
-      });
+      // Initialize provider
+      this.provider = new ethers.JsonRpcProvider(rpcUrl);
 
       if (privateKey) {
-        this.qubicWallet = new QubicWallet(privateKey, this.qubicProvider);
-        this.logger.log('Qubic wallet initialized');
+        this.wallet = new ethers.Wallet(privateKey, this.provider);
+        this.logger.log('Wallet initialized');
       }
 
       // Initialize contracts with deployed addresses
@@ -52,24 +52,24 @@ export class BlockchainService {
       const oracleAddress = this.configService.get<string>('ORACLE_CONTRACT_ADDRESS');
       const governanceAddress = this.configService.get<string>('GOVERNANCE_CONTRACT_ADDRESS');
 
-      if (oqAssetAddress && this.qubicWallet) {
-        this.signer = this.qubicWallet.signer;
+      if (oqAssetAddress && this.wallet) {
+        this.signer = this.wallet;
         this.oqAssetContract = new ethers.Contract(oqAssetAddress, oqAssetABI, this.signer);
       }
-      if (lendingPoolAddress && this.qubicWallet) {
+      if (lendingPoolAddress && this.wallet) {
         this.lendingPoolContract = new ethers.Contract(lendingPoolAddress, lendingPoolABI, this.signer);
       }
-      if (liquidityPoolAddress && this.qubicWallet) {
+      if (liquidityPoolAddress && this.wallet) {
         this.liquidityPoolContract = new ethers.Contract(liquidityPoolAddress, liquidityPoolABI, this.signer);
       }
-      if (oracleAddress && this.qubicWallet) {
+      if (oracleAddress && this.wallet) {
         this.assetOracleContract = new ethers.Contract(oracleAddress, assetOracleABI, this.signer);
       }
-      if (governanceAddress && this.qubicWallet) {
+      if (governanceAddress && this.wallet) {
         this.governanceContract = new ethers.Contract(governanceAddress, governanceABI, this.signer);
       }
 
-      this.logger.log('Qubic blockchain contracts initialized');
+      this.logger.log('Blockchain contracts initialized');
     } catch (error) {
       this.logger.error('Failed to initialize Qubic blockchain connection', error);
     }
@@ -85,21 +85,18 @@ export class BlockchainService {
     }
 
     try {
-      const tx = await this.qubicWallet.sendTransaction({
-        to: this.oqAssetContract.address,
-        data: this.oqAssetContract.interface.encodeFunctionData('mintAsset', [
-          to,
-          ethers.utils.parseEther(amount),
-          metadata.documentHash,
-          metadata.valuation,
-          metadata.maturityDate,
-          metadata.assetType
-        ]),
-        value: '0',
-      });
+      const tx = await this.oqAssetContract.mintAsset(
+        to,
+        ethers.parseEther(amount),
+        metadata.documentHash,
+        metadata.valuation,
+        metadata.maturityDate,
+        metadata.assetType
+      );
+      const receipt = await tx.wait();
 
-      this.logger.log(`oqAsset minted on Qubic: ${tx.hash}`);
-      return tx.hash;
+      this.logger.log(`oqAsset minted: ${receipt.hash}`);
+      return receipt.hash;
     } catch (error) {
       this.logger.error('Failed to mint oqAsset on Qubic', error);
       throw error;
@@ -113,11 +110,8 @@ export class BlockchainService {
     }
 
     try {
-      const balance = await this.qubicProvider.call({
-        to: this.oqAssetContract.address,
-        data: this.oqAssetContract.interface.encodeFunctionData('balanceOf', [address]),
-      });
-      return ethers.utils.formatEther(balance);
+      const balance = await this.oqAssetContract.balanceOf(address);
+      return ethers.formatEther(balance);
     } catch (error) {
       this.logger.error('Failed to get oqAsset balance from Qubic', error);
       throw error;
@@ -157,29 +151,22 @@ export class BlockchainService {
 
     try {
       // First approve oqAsset transfer
-      const approveTx = await this.qubicWallet.sendTransaction({
-        to: this.oqAssetContract.address,
-        data: this.oqAssetContract.interface.encodeFunctionData('approve', [
-          this.lendingPoolContract.address,
-          ethers.utils.parseEther(oqAssetAmount)
-        ]),
-        value: '0',
-      });
-      await this.qubicProvider.waitForTransaction(approveTx.hash);
+      const approveTx = await this.oqAssetContract.approve(
+        this.lendingPoolContract.target,
+        ethers.parseEther(oqAssetAmount)
+      );
+      await approveTx.wait();
 
       // Create loan
-      const loanTx = await this.qubicWallet.sendTransaction({
-        to: this.lendingPoolContract.address,
-        data: this.lendingPoolContract.interface.encodeFunctionData('createLoan', [
-          ethers.utils.parseEther(oqAssetAmount),
-          ethers.utils.parseEther(stablecoinAmount),
-          assetId
-        ]),
-        value: '0',
-      });
+      const loanTx = await this.lendingPoolContract.createLoan(
+        ethers.parseEther(oqAssetAmount),
+        ethers.parseEther(stablecoinAmount),
+        assetId
+      );
+      const receipt = await loanTx.wait();
 
-      this.logger.log(`Loan created on Qubic: ${loanTx.hash}`);
-      return loanTx.hash;
+      this.logger.log(`Loan created: ${receipt.hash}`);
+      return receipt.hash;
     } catch (error) {
       this.logger.error('Failed to create loan on Qubic', error);
       throw error;
@@ -195,17 +182,14 @@ export class BlockchainService {
     }
 
     try {
-      const tx = await this.qubicWallet.sendTransaction({
-        to: this.lendingPoolContract.address,
-        data: this.lendingPoolContract.interface.encodeFunctionData('repayLoan', [
-          loanId,
-          ethers.utils.parseEther(amount)
-        ]),
-        value: '0',
-      });
+      const tx = await this.lendingPoolContract.repayLoan(
+        loanId,
+        ethers.parseEther(amount)
+      );
+      const receipt = await tx.wait();
 
-      this.logger.log(`Loan repaid on Qubic: ${tx.hash}`);
-      return tx.hash;
+      this.logger.log(`Loan repaid: ${receipt.hash}`);
+      return receipt.hash;
     } catch (error) {
       this.logger.error('Failed to repay loan on Qubic', error);
       throw error;
@@ -218,8 +202,8 @@ export class BlockchainService {
       return {
         id: loan.id.toString(),
         borrower: loan.borrower,
-        oqAssetAmount: ethers.utils.formatEther(loan.oqAssetAmount),
-        stablecoinAmount: ethers.utils.formatEther(loan.stablecoinAmount),
+        oqAssetAmount: ethers.formatEther(loan.oqAssetAmount),
+        stablecoinAmount: ethers.formatEther(loan.stablecoinAmount),
         collateralRatio: loan.collateralRatio.toString(),
         interestRate: loan.interestRate.toString(),
         startTime: loan.startTime.toString(),
@@ -240,8 +224,8 @@ export class BlockchainService {
     try {
       // Approve tokens
       const approveATx = await this.oqAssetContract.approve(
-        this.liquidityPoolContract.address,
-        ethers.utils.parseEther(tokenAAmount)
+        this.liquidityPoolContract.target,
+        ethers.parseEther(tokenAAmount)
       );
       await approveATx.wait();
 
@@ -249,17 +233,17 @@ export class BlockchainService {
       const stablecoinAddress = await this.liquidityPoolContract.tokenB();
       const stablecoinContract = new ethers.Contract(stablecoinAddress, [], this.signer);
       const approveBTx = await stablecoinContract.approve(
-        this.liquidityPoolContract.address,
-        ethers.utils.parseEther(tokenBAmount)
+        this.liquidityPoolContract.target,
+        ethers.parseEther(tokenBAmount)
       );
       await approveBTx.wait();
 
       const tx = await this.liquidityPoolContract.addLiquidity(
-        ethers.utils.parseEther(tokenAAmount),
-        ethers.utils.parseEther(tokenBAmount)
+        ethers.parseEther(tokenAAmount),
+        ethers.parseEther(tokenBAmount)
       );
       const receipt = await tx.wait();
-      return receipt.transactionHash;
+      return receipt.hash;
     } catch (error) {
       this.logger.error('Failed to add liquidity', error);
       throw error;
@@ -269,10 +253,10 @@ export class BlockchainService {
   async removeLiquidity(liquidityAmount: string): Promise<string> {
     try {
       const tx = await this.liquidityPoolContract.removeLiquidity(
-        ethers.utils.parseEther(liquidityAmount)
+        ethers.parseEther(liquidityAmount)
       );
       const receipt = await tx.wait();
-      return receipt.transactionHash;
+      return receipt.hash;
     } catch (error) {
       this.logger.error('Failed to remove liquidity', error);
       throw error;
@@ -287,25 +271,25 @@ export class BlockchainService {
     try {
       // Approve token
       let tokenContract;
-      if (tokenIn === this.oqAssetContract.address) {
+      if (tokenIn === this.oqAssetContract.target) {
         tokenContract = this.oqAssetContract;
       } else {
-        tokenContract = new ethers.Contract(tokenIn, [], this.signer);
+        tokenContract = new ethers.Contract(tokenIn, erc20ABI, this.signer);
       }
 
       const approveTx = await tokenContract.approve(
-        this.liquidityPoolContract.address,
-        ethers.utils.parseEther(amountIn)
+        this.liquidityPoolContract.target,
+        ethers.parseEther(amountIn)
       );
       await approveTx.wait();
 
       const tx = await this.liquidityPoolContract.swap(
         tokenIn,
-        ethers.utils.parseEther(amountIn),
-        ethers.utils.parseEther(minAmountOut)
+        ethers.parseEther(amountIn),
+        ethers.parseEther(minAmountOut)
       );
       const receipt = await tx.wait();
-      return receipt.transactionHash;
+      return receipt.hash;
     } catch (error) {
       this.logger.error('Failed to swap tokens', error);
       throw error;
@@ -317,7 +301,7 @@ export class BlockchainService {
     try {
       const tx = await this.assetOracleContract.submitValuation(assetId, value);
       const receipt = await tx.wait();
-      return receipt.transactionHash;
+      return receipt.hash;
     } catch (error) {
       this.logger.error('Failed to submit valuation', error);
       throw error;
@@ -350,10 +334,10 @@ export class BlockchainService {
         description,
         target,
         data,
-        ethers.utils.parseEther(value)
+        ethers.parseEther(value)
       );
       const receipt = await tx.wait();
-      return receipt.transactionHash;
+      return receipt.hash;
     } catch (error) {
       this.logger.error('Failed to create proposal', error);
       throw error;
@@ -364,7 +348,7 @@ export class BlockchainService {
     try {
       const tx = await this.governanceContract.castVote(proposalId, support);
       const receipt = await tx.wait();
-      return receipt.transactionHash;
+      return receipt.hash;
     } catch (error) {
       this.logger.error('Failed to cast vote', error);
       throw error;
@@ -374,29 +358,29 @@ export class BlockchainService {
   // Utility functions
   async getBlockNumber(): Promise<number> {
     try {
-      return await this.qubicProvider.getBlockNumber();
+      return await this.provider.getBlockNumber();
     } catch (error) {
-      this.logger.error('Failed to get Qubic block number', error);
+      this.logger.error('Failed to get block number', error);
       throw error;
     }
   }
 
   async getGasPrice(): Promise<string> {
     try {
-      const gasPrice = await this.qubicProvider.getGasPrice();
-      return ethers.utils.formatUnits(gasPrice, 'gwei');
+      const gasPrice = await this.provider.getFeeData();
+      return ethers.formatUnits(gasPrice.gasPrice || 0, 'gwei');
     } catch (error) {
-      this.logger.error('Failed to get Qubic gas price', error);
+      this.logger.error('Failed to get gas price', error);
       throw error;
     }
   }
 
   async getBalance(address: string): Promise<string> {
     try {
-      const balance = await this.qubicProvider.getBalance(address);
-      return ethers.utils.formatEther(balance);
+      const balance = await this.provider.getBalance(address);
+      return ethers.formatEther(balance);
     } catch (error) {
-      this.logger.error('Failed to get Qubic balance', error);
+      this.logger.error('Failed to get balance', error);
       throw error;
     }
   }

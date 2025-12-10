@@ -43,14 +43,13 @@ Qubic OmniVault is built on the Qubic blockchain, utilizing smart contracts for:
 ### Integration Points
 
 #### Backend (NestJS)
-- **@qubic/web3-sdk**: Primary Qubic blockchain interaction
-- **QubicProvider**: RPC connection management
-- **QubicWallet**: Transaction signing and sending
+- **ethers.js v6**: Primary blockchain interaction
+- **JsonRpcProvider**: RPC connection management
+- **Wallet**: Transaction signing and sending
 - **Contract ABIs**: TypeScript interfaces for smart contracts
 
 #### Frontend (React)
-- **@qubic/web3-sdk/wagmi**: Wagmi connector for Qubic
-- **Web3Modal**: Wallet connection UI
+- **wagmi + Web3Modal**: Standard wallet connection
 - **Real-time Updates**: WebSocket integration for live data
 
 ## Setup Instructions

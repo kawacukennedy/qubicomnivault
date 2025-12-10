@@ -551,7 +551,7 @@ npm install @web3modal/wagmi wagmi viem
 ### Wallet Integration
 
 ```typescript
-import { QubicConnector } from '@qubic/web3-sdk/wagmi';
+import { injected, metaMask, walletConnect } from 'wagmi';
 
 const config = createConfig({
   chains: [mainnet, sepolia, qubic],
@@ -559,7 +559,6 @@ const config = createConfig({
     injected(),
     metaMask(),
     walletConnect({ projectId: 'your-project-id' }),
-    qubicConnector(),
   ],
   transports: {
     [qubic.id]: http(),
@@ -605,34 +604,7 @@ async function callContractProcedure(seed: string, inputs: any) {
 
 ## Wallet Integrations
 
-### MetaMask Snap
-```typescript
-import { MetaMaskSnapConnector } from '@qubic/web3-sdk/metamask-snap';
-
-// Initialize connector
-const connector = new MetaMaskSnapConnector({
-  appName: 'My Qubic dApp'
-});
-```
-
-### WalletConnect
-```typescript
-import { WalletConnectConnector } from '@qubic/web3-sdk/walletconnect';
-
-const connector = new WalletConnectConnector({
-  projectId: 'your-walletconnect-project-id',
-  chains: [qubic]
-});
-```
-
-### Seed Phrase (Development Only)
-```typescript
-import { SeedConnector } from '@qubic/web3-sdk/seed';
-
-const connector = new SeedConnector({
-  seed: 'your-seed-phrase' // NEVER use in production
-});
-```
+Use standard wagmi connectors for MetaMask, WalletConnect, and other wallets. Qubic is EVM-compatible, so no special connectors are needed.
 
 ## TypeScript Library
 

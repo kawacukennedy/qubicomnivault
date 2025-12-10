@@ -47,7 +47,6 @@
     "@types/bcrypt": "^5.0.2",
     "@types/passport-jwt": "^4.0.1",
     "aws-sdk": "^2.1691.0",
-    "@qubic/web3-sdk": "^1.0.0",
     "web3": "^4.16.0",
     "@truffle/hdwallet-provider": "^2.1.15",
     "bull": "^4.16.3",
