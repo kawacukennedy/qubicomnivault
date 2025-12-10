@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useDisconnect } from 'wagmi';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Table } from '../components/ui/Table';
@@ -42,6 +44,8 @@ const Dashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [borrowModalOpen, setBorrowModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<any>(null);
+  const navigate = useNavigate();
+  const { disconnect } = useDisconnect();
 
   // Real API calls
   const { data: portfolioData, isLoading: portfolioLoading, error: portfolioError, refetch: refetchPortfolio } = usePortfolioSummary();
@@ -83,6 +87,13 @@ const Dashboard = () => {
   const isLoading = portfolioLoading || positionsLoading;
   const error = portfolioError || positionsError;
 
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
+    disconnect();
+    navigate('/connect');
+  };
+
   const sidebarItems = [
     { label: 'Overview', onClick: () => {} },
     { label: 'My Positions', onClick: () => {} },
@@ -90,6 +101,7 @@ const Dashboard = () => {
     { label: 'Tokenize', onClick: () => window.location.href = '/app/tokenize' },
     { label: 'Governance', onClick: () => window.location.href = '/app/governance' },
     { label: 'Settings', onClick: () => window.location.href = '/app/settings' },
+    { label: 'Logout', onClick: handleLogout },
   ];
 
   const userWidget = {

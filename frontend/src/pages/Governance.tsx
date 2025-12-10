@@ -3,7 +3,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal, ModalHeader, ModalTitle, ModalContent, ModalFooter } from '../components/ui/Modal';
-import { Input } from '../components/ui/Input';
+import { Input, Textarea } from '../components/ui/Input';
 import { Textarea } from '../components/ui/Input'; // Assuming Textarea is available
 import { useProposals, useVotingPower, useVote, useCreateProposal } from '../services/api';
 
@@ -158,8 +158,7 @@ const Governance = () => {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Description</label>
-              <textarea
-                className="w-full px-3 py-2 border border-neutral-200 rounded-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
+              <Textarea
                 rows={4}
                 placeholder="Proposal description"
                 value={newProposal.description}
