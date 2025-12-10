@@ -234,10 +234,10 @@ const Tokenize = () => {
                 <Button
                   type="submit"
                   size="lg"
-                  disabled={mintMutation.isLoading}
+                  disabled={mintMutation.isPending}
                   onClick={() => setShowMintModal(true)}
                 >
-                  {mintMutation.isLoading ? 'Minting...' : 'Confirm Mint'}
+                  {mintMutation.isPending ? 'Minting...' : 'Confirm Mint'}
                 </Button>
               </div>
             )}
@@ -277,8 +277,8 @@ const Tokenize = () => {
             >
               Cancel
             </Button>
-            <Button onClick={handleMintConfirm} disabled={mintMutation.isLoading}>
-              {mintMutation.isLoading ? 'Minting...' : 'Confirm'}
+            <Button onClick={handleMintConfirm} disabled={mintMutation.isPending}>
+              {mintMutation.isPending ? 'Minting...' : 'Confirm'}
             </Button>
           </ModalFooter>
         </Modal>

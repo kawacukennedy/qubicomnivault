@@ -202,9 +202,9 @@ const Pools = () => {
                 console.error('Liquidity operation failed:', error);
               }
             }}
-            disabled={!amount || provideLiquidityMutation.isLoading || removeLiquidityMutation.isLoading}
+            disabled={!amount || provideLiquidityMutation.isPending || removeLiquidityMutation.isPending}
           >
-            {provideLiquidityMutation.isLoading || removeLiquidityMutation.isLoading
+            {provideLiquidityMutation.isPending || removeLiquidityMutation.isPending
               ? 'Processing...'
               : 'Confirm'
             }

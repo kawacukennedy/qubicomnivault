@@ -14,9 +14,9 @@ import { usePortfolioSummary, usePositions } from '../services/api';
 import BorrowModal from '../components/BorrowModal';
 
 interface Portfolio {
-  total_value_usd: number;
-  change_24h_percentage: number;
-  breakdown: { name: string; value: number; usd_value: number }[];
+  totalValue: number;
+  change24h: number;
+  breakdown: { name: string; value: number }[];
 }
 
 interface Position {
@@ -148,7 +148,7 @@ const Dashboard = () => {
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center h-48 text-error-500">
-                <p>{error}</p>
+                <p>{error.message}</p>
                 <Button
                   variant="outline"
                   size="sm"

@@ -130,8 +130,8 @@ const Settings = () => {
                       ))}
                     </div>
                   </div>
-                  <Button type="submit" disabled={updatePreferencesMutation.isLoading}>
-                    {updatePreferencesMutation.isLoading ? 'Saving...' : 'Save Changes'}
+                  <Button type="submit" disabled={updatePreferencesMutation.isPending}>
+                    {updatePreferencesMutation.isPending ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </form>
               </Card>
@@ -158,9 +158,9 @@ const Settings = () => {
                         console.error('Create API key failed:', error);
                       }
                     }}
-                    disabled={createApiKeyMutation.isLoading}
+                    disabled={createApiKeyMutation.isPending}
                   >
-                    {createApiKeyMutation.isLoading ? 'Creating...' : 'Create New API Key'}
+                    {createApiKeyMutation.isPending ? 'Creating...' : 'Create New API Key'}
                   </Button>
                 </div>
                 <div className="space-y-3">
@@ -184,7 +184,7 @@ const Settings = () => {
                             console.error('Revoke API key failed:', error);
                           }
                         }}
-                        disabled={revokeApiKeyMutation.isLoading}
+                        disabled={revokeApiKeyMutation.isPending}
                       >
                         Revoke
                       </Button>
@@ -262,9 +262,9 @@ const Settings = () => {
                 console.error('Create template failed:', error);
               }
             }}
-            disabled={createTemplateMutation.isLoading || !newTemplate.template_name || !newTemplate.event_type || !newTemplate.destination}
+            disabled={createTemplateMutation.isPending || !newTemplate.template_name || !newTemplate.event_type || !newTemplate.destination}
           >
-            {createTemplateMutation.isLoading ? 'Creating...' : 'Create Template'}
+            {createTemplateMutation.isPending ? 'Creating...' : 'Create Template'}
           </Button>
         </ModalFooter>
       </Modal>

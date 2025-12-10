@@ -4,11 +4,12 @@ import { Card } from './ui/Card';
 
 interface ActivityItem {
   id: string;
-  type: 'transaction' | 'alert' | 'update';
+  type: 'transaction' | 'alert' | 'update' | 'governance' | 'liquidity';
   title: string;
   description: string;
   timestamp: string;
   amount?: number;
+  metadata?: any;
 }
 
 interface ActivityFeedProps {

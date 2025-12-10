@@ -4,7 +4,6 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal, ModalHeader, ModalTitle, ModalContent, ModalFooter } from '../components/ui/Modal';
 import { Input, Textarea } from '../components/ui/Input';
-import { Textarea } from '../components/ui/Input'; // Assuming Textarea is available
 import { useProposals, useVotingPower, useVote, useCreateProposal } from '../services/api';
 
 const Governance = () => {
@@ -93,7 +92,7 @@ const Governance = () => {
                           variant={proposal.my_vote === 'for' ? 'solid' : 'outline'}
                           onClick={() => handleVote(proposal.id, 'for')}
                           className="w-full sm:w-auto"
-                          disabled={voteMutation.isLoading}
+                          disabled={voteMutation.isPending}
                         >
                           For ({(proposal.votes_for || 0).toLocaleString()})
                         </Button>
@@ -102,7 +101,7 @@ const Governance = () => {
                           variant={proposal.my_vote === 'against' ? 'solid' : 'outline'}
                           onClick={() => handleVote(proposal.id, 'against')}
                           className="w-full sm:w-auto"
-                          disabled={voteMutation.isLoading}
+                          disabled={voteMutation.isPending}
                         >
                           Against ({(proposal.votes_against || 0).toLocaleString()})
                         </Button>
@@ -198,9 +197,9 @@ const Governance = () => {
                 console.error('Create proposal failed:', error);
               }
             }}
-            disabled={createProposalMutation.isLoading || !newProposal.title || !newProposal.description}
+            disabled={createProposalMutation.isPending || !newProposal.title || !newProposal.description}
           >
-            {createProposalMutation.isLoading ? 'Creating...' : 'Create Proposal'}
+            {createProposalMutation.isPending ? 'Creating...' : 'Create Proposal'}
           </Button>
         </ModalFooter>
       </Modal>

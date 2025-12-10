@@ -32,10 +32,10 @@ const PositionDetail = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'healthy': return { label: 'Healthy', variant: 'success' };
-      case 'at_risk': return { label: 'At Risk', variant: 'warning' };
-      case 'liquidated': return { label: 'Liquidated', variant: 'error' };
-      default: return { label: 'Unknown', variant: 'neutral' };
+      case 'healthy': return { label: 'Healthy', variant: 'success' as const };
+      case 'at_risk': return { label: 'At Risk', variant: 'warning' as const };
+      case 'liquidated': return { label: 'Liquidated', variant: 'error' as const };
+      default: return { label: 'Unknown', variant: 'neutral' as const };
     }
   };
 
