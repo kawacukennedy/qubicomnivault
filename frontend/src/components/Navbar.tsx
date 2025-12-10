@@ -83,9 +83,11 @@ const Navbar: React.FC<NavbarProps> = ({
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
               className="bg-neutral-200 inline-flex items-center justify-center p-2 rounded-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
             >
-              <span className="sr-only">Open main menu</span>
+              <span className="sr-only">{isMobileMenuOpen ? 'Close main menu' : 'Open main menu'}</span>
               {isMobileMenuOpen ? (
                 <svg
                   className="block h-6 w-6"
@@ -126,16 +128,17 @@ const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile menu overlay */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-white">
+        <div id="mobile-menu" className="md:hidden fixed inset-0 z-50 bg-white" role="dialog" aria-modal="true" aria-label="Mobile navigation menu">
           <div className="flex flex-col h-full">
             {/* Mobile menu header */}
             <div className="flex items-center justify-between p-4 border-b border-neutral-200">
               <div className="font-bold text-xl text-neutral-900">{logo}</div>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 rounded-medium hover:bg-neutral-100"
+                aria-label="Close mobile menu"
+                className="p-2 rounded-medium hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
