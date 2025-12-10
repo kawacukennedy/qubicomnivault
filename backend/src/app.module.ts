@@ -16,6 +16,8 @@ import { WebsocketModule } from './modules/websocket/websocket.module';
 import { ValuationModule } from './modules/valuation/valuation.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { BlockchainModule } from './modules/blockchain/blockchain.module';
+import { SchedulerModule } from './modules/scheduler/scheduler.module';
+import { NotificationModule } from './modules/notification/notification.module';
 import { User } from './entities/user.entity';
 import { Document } from './entities/document.entity';
 import { oqAsset } from './entities/oqAsset.entity';
@@ -56,15 +58,17 @@ import { ValuationJob } from './entities/valuationJob.entity';
     MulterModule.register({
       dest: './uploads',
     }),
-    AuthModule,
-    TokenizeModule,
-    LoansModule,
-    PoolsModule,
-    GovernanceModule,
-    WebsocketModule,
-    ValuationModule,
-    DashboardModule,
-    BlockchainModule,
+     AuthModule,
+     TokenizeModule,
+     LoansModule,
+     PoolsModule,
+     GovernanceModule,
+     WebsocketModule,
+      ValuationModule,
+      DashboardModule,
+      BlockchainModule,
+      SchedulerModule,
+      NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
