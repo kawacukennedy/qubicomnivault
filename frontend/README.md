@@ -12,6 +12,13 @@ A modern, responsive React TypeScript SPA for the Qubic OmniVault DeFi platform,
 - ✅ **Liquidity Pools**: Provide liquidity and earn rewards
 - ✅ **Governance**: Vote on platform proposals and participate in decision-making
 
+### Wallet Integration
+- ✅ **Multi-Wallet Support**: MetaMask, Coinbase Wallet, WalletConnect, and injected wallets
+- ✅ **Web3Modal**: Modern modal interface with custom theming and analytics
+- ✅ **Network Support**: Ethereum, Sepolia testnet, Qubic mainnet, and Qubic testnet
+- ✅ **Secure Authentication**: Wallet signature-based authentication with nonce verification
+- ✅ **Real-Time Connection**: Live connection status and network switching
+
 ### User Experience
 - ✅ **Universal Sidebar Navigation**: Persistent sidebar across all app pages for improved accessibility
 - ✅ **Mobile-First Design**: Fully responsive with optimized mobile navbar and touch targets
@@ -118,13 +125,28 @@ Create environment files for different stages:
 ```env
 VITE_API_BASE=http://localhost:3001
 VITE_WS_URL=ws://localhost:3001
+VITE_USE_MOCK_DATA=true
+VITE_QUBIC_RPC_URL=https://testnet-rpc.qubic.org
+VITE_QUBIC_TESTNET_RPC_URL=https://testnet-rpc.qubic.org
 ```
 
 **Production** (set in hosting platform):
 ```env
 VITE_API_BASE=https://api.qubicomnivault.com
 VITE_WS_URL=wss://api.qubicomnivault.com
+VITE_USE_MOCK_DATA=false
+VITE_QUBIC_RPC_URL=https://rpc.qubic.org
+VITE_QUBIC_TESTNET_RPC_URL=https://testnet-rpc.qubic.org
 ```
+
+### Wallet Configuration
+The app supports multiple wallet connections:
+- **MetaMask**: Browser extension
+- **Coinbase Wallet**: Mobile and browser
+- **WalletConnect**: Mobile wallets via QR code
+- **Injected**: Other browser wallet extensions
+
+Web3Modal handles wallet discovery and connection automatically.
 
 ### Build Optimization
 - The app uses Vite for fast builds and hot reloading
