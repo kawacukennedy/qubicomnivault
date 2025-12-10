@@ -37,6 +37,10 @@ interface ActivityItem {
   metadata?: any;
 }
 
+/**
+ * Main dashboard component displaying portfolio overview, positions, and quick actions
+ * @returns JSX.Element
+ */
 const Dashboard = () => {
   const [borrowModalOpen, setBorrowModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<any>(null);

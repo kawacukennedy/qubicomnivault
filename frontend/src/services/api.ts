@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import * as mockData from './mockData';
 
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
 const USE_MOCK_DATA = true; // Always use mock data until backend is production-ready
 
 const getAuthHeaders = (): Record<string, string> => {
@@ -12,7 +12,10 @@ const getAuthHeaders = (): Record<string, string> => {
   return {};
 };
 
-// Auth
+/**
+ * Hook for fetching a nonce for wallet authentication
+ * @returns Query object with nonce data
+ */
 export const useNonce = () => {
   return useQuery({
     queryKey: ['nonce'],
@@ -43,6 +46,10 @@ export const useRegister = () => {
   });
 };
 
+/**
+ * Hook for user login with wallet signature
+ * @returns Mutation object for login operation
+ */
 export const useLogin = () => {
   return useMutation({
     mutationFn: async (data: { wallet_address: string; signature: string; nonce: string }) => {
@@ -120,7 +127,10 @@ export const useMint = () => {
   });
 };
 
-// Portfolio
+/**
+ * Hook for fetching user's portfolio summary
+ * @returns Query object with portfolio data including total value and breakdown
+ */
 export const usePortfolioSummary = () => {
   return useQuery({
     queryKey: ['portfolio'],
@@ -138,6 +148,10 @@ export const usePortfolioSummary = () => {
   });
 };
 
+/**
+ * Hook for fetching user's collateralized positions
+ * @returns Query object with positions data
+ */
 export const usePositions = () => {
   return useQuery({
     queryKey: ['positions'],
