@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAccount, useSignMessage } from 'wagmi';
+import { open } from '@web3modal/wagmi/react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import WalletButton from '../components/WalletButton';
 import { useLogin, useNonce } from '../services/api';
 
 const Connect = () => {
@@ -140,11 +140,11 @@ const Connect = () => {
                     </Button>
                   )}
                 </div>
-              ) : (
-                <WalletButton className="w-full">
-                  Connect Wallet
-                </WalletButton>
-              )}
+               ) : (
+                 <Button onClick={() => open()} className="w-full">
+                   Connect Wallet
+                 </Button>
+               )}
 
               <div className="text-center">
                 <p className="text-sm text-neutral-500 mb-4">Supported wallets:</p>
